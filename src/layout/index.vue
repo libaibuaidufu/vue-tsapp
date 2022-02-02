@@ -50,6 +50,8 @@ export default {
         search: this.keyword,
       };
       const res = await bookSearch(params);
+      // window.androidinfo.showLogs(JSON.stringify(res))
+      this.$store.dispatch("setSearchList",res.data.data.bookData)
       this.searchBook = res.data.data.bookData;
     },
     toggleClick(val) {

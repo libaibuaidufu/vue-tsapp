@@ -1,84 +1,88 @@
 <template>
   <!-- <book-re-head :title="title" /> -->
-  <div class="book-intro">
-    <div class="book-one">
-      <div class="book-img">
-        <img :src="bookIntro.bookImage" alt="..." v-real-img="" />
+  <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
+    <div class="book-intro">
+      <div class="book-one">
+        <div class="book-img">
+          <img :src="bookInfo.bookIntro.bookImage" alt="..." v-real-img="" />
+        </div>
+        <div class="book-info">
+          <p class="book-title">{{ bookInfo.bookIntro.bookTitle }}</p>
+          <p class="book-title">{{ bookInfo.bookIntro.bookAnchor }}</p>
+          <p
+            v-if="bookInfo.bookIntro.bookUpdateStatus === 2"
+            class="book-title"
+          >
+            更新到{{ bookInfo.bookIntro.count }}集
+          </p>
+          <p v-else class="book-title">
+            共{{ bookInfo.bookIntro.count }}集已完结
+          </p>
+          <p v-if="fav" @click="isFav" class="book-title">
+            <van-icon name="star" />
+          </p>
+          <p v-else @click="isFav" class="book-title">
+            <van-icon name="star-o" />
+          </p>
+        </div>
       </div>
-      <div class="book-info">
-        <p class="book-title">{{ bookIntro.bookTitle }}</p>
-        <p class="book-title">{{ bookIntro.bookAnchor }}</p>
-        <p v-if="bookIntro.bookUpdateStatus === 2" class="book-title">
-          更新到{{ bookIntro.count }}集
-        </p>
-        <p v-else class="book-title">共{{ bookIntro.count }}集已完结</p>
-        <p v-if="fav" @click="isFav" class="book-title">
-          <van-icon name="star" />
-        </p>
-        <p v-else @click="isFav" class="book-title">
-          <van-icon name="star-o" />
-        </p>
+      <div class="book-two">
+        <p class="book-desc">{{ bookInfo.bookIntro.bookDesc }}</p>
       </div>
-    </div>
-    <div class="book-two">
-      <p class="book-desc">{{ bookIntro.bookDesc }}</p>
-    </div>
-    <p>集数</p>
-    <p
-      class="book-title"
-      @click="pushToMusic(favDict.bookChapter)"
-      v-if="favDict.bookChapter.chapterTitle"
-    >
-      上次听到：
-      {{ this.favDict.bookChapter.chapterTitle }}
-    </p>
-    <div class="book-listen-list">
-      <van-list
-        v-model="loading"
-        :finished="finished"
-        finished-text="没有更多了"
+      <p>集数</p>
+      <p
+        class="book-title"
+        @click="
+          pushToMusic({
+            chapterTitle: bookInfo.lastChapterTitle,
+            chapterId: bookInfo.lastChapterId,
+          })
+        "
+        v-if="bookInfo.lastChapterTitle"
       >
-        <van-cell
-          v-for="item in bookIntroList"
-          :key="item.chapterId"
-          :title="item.chapterTitle"
-          @click="pushToMusic(item)"
-        />
-      </van-list>
+        上次听到：
+        {{ bookInfo.lastChapterTitle }}
+      </p>
+      <div class="book-listen-list">
+        <van-list
+          v-model="loading"
+          :finished="finished"
+          finished-text="没有更多了"
+        >
+          <van-cell
+            v-for="item in bookIntroList"
+            :key="item.chapterId"
+            :title="item.chapterTitle"
+            @click="pushToMusic(item)"
+          />
+        </van-list>
+      </div>
     </div>
-  </div>
+  </van-pull-refresh>
 </template>
 
 <script>
 import BookFooter from "../components/BookFooter.vue";
 import BookReHead from "../components/BookReHead.vue";
 import { bookInfo, bookListen } from "../api/book";
-import {
-  loadFavList,
-  setFavList,
-  getFav,
-  isFav,
-  removeFavSetFavList,
-  pushFavSetFavList,
-  saveCurrentBook,
-  loadCurrentBook,
-} from "../utils/utils";
+import { getFavBookByBookId, getSearchBookByBookId } from "../utils/utils";
 
 export default {
   data() {
     return {
+      isLoading: false,
       uid: 0,
-      bookId: 0,
-      bookIntro: {},
       bookIntroList: [],
       size: 20,
       loading: false,
       finished: true,
       fav: false,
-      favDict: {
+      bookInfo: {
         bookId: 0,
-        bookIntro: Object,
-        bookChapter: { chapterTitle: null },
+        bookIntro: {},
+        lastChapterTitle: "",
+        lastChapterId: 0,
+        fav: false,
       },
     };
   },
@@ -88,66 +92,82 @@ export default {
     this.getRouterData();
   },
   methods: {
-    getRouterData() {
-      this.bookId = this.$route.query.id;
-      this.bookIntro = this.$route.query.bookIntro;
-      if (this.bookIntro instanceof Object) {
-        saveCurrentBook(this.bookIntro)
-      } else {
-        this.bookIntro = loadCurrentBook()
-      }
-      console.log(this.$route);
-      console.log(this.bookId, this.bookIntro);
-      this.fav = isFav(this.bookId);
-      this.favDict = getFav(this.bookId, {
-        bookId: this.bookId,
-        bookIntro: this.bookIntro,
-        bookChapter: { chapterTitle: null },
-      });
+    onRefresh() {
       this.fetchBookListen();
+      this.isLoading = false;
+      this.$notify({ type: 'success', message: '刷新成功' });
+    },
+    getRouterData() {
+      const bookId = parseInt(this.$route.query.id);
+      const favList = this.$store.getters.getFavList;
+      const favBook = getFavBookByBookId(favList, bookId);
+      console.log(favBook);
+      if (favBook === undefined) {
+        const searchList = this.$store.getters.getSearchList;
+        console.log(searchList);
+        const bookIntro = Object.assign(
+          {},
+          getSearchBookByBookId(searchList, bookId)
+        );
+        this.bookInfo.bookIntro = bookIntro;
+        this.bookInfo.bookId = bookId;
+        console.log(this.bookInfo);
+        this.fetchBookListen();
+      } else {
+        this.bookInfo = Object.assign({}, favBook);
+        this.bookIntroList = this.bookInfo.currentBookListen;
+        this.loading = true;
+      }
+      this.fav = this.bookInfo.fav;
     },
     pushToMusic(item) {
-      this.favDict.bookChapter = item;
-      if (this.fav) {
-        removeFavSetFavList(this.bookId, this.favDict);
+      console.log(item);
+      this.bookInfo.lastChapterTitle = item.chapterTitle;
+      this.bookInfo.lastChapterId = item.chapterId;
+      this.$store.dispatch("updateCurrentBook", this.bookInfo);
+      if (this.bookInfo.fav) {
+        this.$store.dispatch("updateFav", this.bookInfo);
       }
       this.$router.push({
         name: `PlayMusic`,
         params: {
-          bookId: this.bookId,
-          chapterId: item.chapterId,
-          chapterTitle: item.chapterTitle,
-          bookIntro: this.bookIntro,
-          bookIntroList: this.bookIntroList,
-          bookChapter: item,
+          bookId: this.bookInfo.bookId,
         },
       });
     },
     async fetchBookInfo() {
-      const res = await bookInfo({ uid: this.uid, bookId: this.bookId });
-      // this.bookIntro = res.data.data.bookData;
-      return  res.data.data.bookData
+      const res = await bookInfo({
+        uid: this.uid,
+        bookId: this.bookInfo.bookId,
+      });
+      return res.data.data.bookData;
     },
     async fetchBookListen() {
       const res = await bookListen({
-        bookId: this.bookId,
+        bookId: this.bookInfo.bookId,
         uid: this.uid,
         sort: "asc",
         size: this.size,
       });
       this.bookIntroList = res.data.data.list;
       this.loading = true;
-      this.favDict.bookIntro.count = this.bookIntroList.length;
-      if (this.fav) {
-        removeFavSetFavList(this.bookId, this.favDict);
+      this.bookInfo.bookIntro.count = this.bookIntroList.length;
+      this.bookInfo.currentBookListen = this.bookIntroList;
+      if (this.bookInfo.fav) {
+        this.$store.dispatch("updateFav", this.bookInfo);
       }
     },
     isFav() {
       this.fav = !this.fav;
-      if (this.fav) {
-        pushFavSetFavList(this.favDict);
+      this.bookInfo.fav = this.fav;
+      console.log(this.bookInfo.fav);
+      if (this.bookInfo.fav) {
+        this.bookInfo.skip_start_time = 0;
+        this.bookInfo.skip_end_time = 0;
+        this.$store.dispatch("addFav", this.bookInfo);
+        console.log(this.$store.getters.getFavList);
       } else {
-        removeFavSetFavList(this.bookId, {});
+        this.$store.dispatch("delFav", this.bookInfo.bookId);
       }
     },
   },

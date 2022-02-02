@@ -2,6 +2,7 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import Vant from 'vant';
+import store from './store'
 import 'vant/lib/index.css';
 import '@/utils/appback.js'
 
@@ -41,5 +42,6 @@ let imageIsExist = function(url) {
 }
 new Vue({
   router,
+  store,
   render: h => h(App)
 }).$mount('#app')

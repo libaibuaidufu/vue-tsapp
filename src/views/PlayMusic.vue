@@ -3,62 +3,94 @@
     <video
       ref="video"
       class="video"
+      @canplay="musicCanPlay"
       @timeupdate="onTimeupdate"
       @ended="musicEnd"
       v-if="refresh"
     >
       <source :src="url" type="video/mp4" />
     </video>
-    <van-overlay :show="is_show" @click="onShow">
-      <div class="wrapper">
-        <div class="slider">
-          <div class="slider-tab">
-            <p>跳过开头：{{ skip_start_time }}</p>
-            <div>
-              <van-slider v-model="skip_start_time" :min="0" :max="120" />
-            </div>
-          </div>
-          <div class="slider-tab">
-            <p>跳过结尾：{{ skip_end_time }}</p>
-            <div>
-              <van-slider v-model="skip_end_time" :min="0" :max="120" />
-            </div>
-          </div>
-        </div>
-      </div>
-    </van-overlay>
     <div class="music-play">
       <div class="music-img">
-        <img :src="bookIntro.bookImage" alt="" />
+        <img :src="bookInfo.bookIntro.bookImage" alt="" />
         <div class="book-info">
-          <p>{{ bookIntro.bookTitle }}</p>
-          <p>{{ bookIntro.bookAnchor }}</p>
-          <p>{{ chapterTitle }}</p>
+          <p>{{ bookInfo.bookIntro.bookTitle }}</p>
+          <p>{{ bookInfo.bookIntro.bookAnchor }}</p>
+          <p>{{ bookInfo.lastChapterTitle }}</p>
         </div>
       </div>
       <div class="music-control">
         <div class="music-skip">
-          <p @click="onShow">跳过头尾</p>
-          <div class="rate-play">
-            <van-dropdown-menu direction="up">
-              <van-dropdown-item
-                v-model="rate_play"
-                :options="rate_option"
-                @change="playbackRate"
-              />
-            </van-dropdown-menu>
-          </div>
-          <div class="rate-play">
-            <van-dropdown-menu direction="up">
-              <van-dropdown-item
-                v-model="skip_chapter"
-                :options="skip_options"
-                @change="skipChapter"
-              />
-            </van-dropdown-menu>
+          <p @click="isShow = true">跳过头尾</p>
+          <p @click="isRate = true">播放速度X{{ rate_play }}</p>
+          <p @click="isChapter = true" v-if="skip_chapter === 0">定时关闭</p>
+          <p @click="isChapter = true" v-else>剩余{{ skip_chapter }}集</p>
+          <p @click="isList = true">集数列表</p>
+          <div>
+            <van-action-sheet
+              v-model="isShow"
+              title="跳过头尾"
+              @select="onSelectShow"
+            >
+              <div class="slider">
+                <div class="slider-tab">
+                  <p>跳过开头</p>
+                  <van-stepper
+                    v-model="skip_start_time"
+                    min="0"
+                    max="120"
+                    name="跳过开头"
+                    integer
+                  />
+                </div>
+                <div class="slider-tab">
+                  <p>跳过结尾</p>
+                  <van-stepper
+                    v-model="skip_end_time"
+                    min="0"
+                    max="120"
+                    name="跳过结尾："
+                    integer
+                  />
+                </div>
+              </div>
+            </van-action-sheet>
+            <van-action-sheet
+              v-model="isRate"
+              :actions="rate_option"
+              title="播放速度"
+              @select="onSelectRate"
+            />
+            <van-action-sheet
+              v-model="isChapter"
+              :actions="skip_options"
+              title="定时关闭"
+              @select="onSelectChapter"
+            />
+            <van-action-sheet
+              v-model="isList"
+              title="集数列表"
+              @select="onSelectChapterOptions"
+            >
+              <van-grid clickable :gutter="5">
+                <van-grid-item
+                  :text="(item - 1) * 50 + 1 + '-' + item * 50"
+                  v-for="item in cutChapter"
+                  :key="item"
+                  @click="showCutChapter(item)"
+                />
+              </van-grid>
+              <van-list>
+                <van-cell
+                  v-for="item in cutChapterList"
+                  :key="item.chapterId"
+                  :title="item.chapterTitle"
+                  @click="playClickChapter(item)"
+                />
+              </van-list>
+            </van-action-sheet>
           </div>
         </div>
-
         <div class="music-progress">
           <div class="run-time">{{ run_time }}</div>
           <div class="music-pro">
@@ -69,7 +101,7 @@
         <div class="music-play">
           <p @click="addTime(-10)">-10s</p>
           <van-icon name="arrow-left" @click="lastMusic" />
-          <van-icon name="play" v-if="is_play" @click="playMusic" />
+          <van-icon name="play" v-if="!is_play" @click="playMusic" />
           <van-icon name="pause" @click="playMusic" v-else />
           <van-icon name="arrow" @click="nextMusic" />
           <p @click="addTime(10)">+10s</p>
@@ -80,15 +112,8 @@
 </template>
 
 <script>
-import { bookOne } from "../api/book";
-import {
-  loadFavList,
-  setFavList,
-  removeFavSetFavList,
-  pushFavSetFavList,
-  isFav,
-  getFav,
-} from "../utils/utils";
+import { bookOne } from "@/api/book";
+import { abc, realFormatSecond } from "../utils/utils";
 
 export default {
   data() {
@@ -96,51 +121,51 @@ export default {
       rate_play: 1,
       rate_option: [
         {
-          text: "x1",
+          name: "x1",
           value: 1,
         },
         {
-          text: "x1.25",
+          name: "x1.25",
           value: 1.25,
         },
         {
-          text: "x1.5",
+          name: "x1.5",
           value: 1.5,
         },
         {
-          text: "x1.75",
+          name: "x1.75",
           value: 1.75,
         },
         {
-          text: "x2",
+          name: "x2",
           value: 2,
         },
       ],
       skip_chapter: 0,
       skip_options: [
         {
-          text: "定时播放",
-          value: 0,
-        },
-        {
-          text: "一集",
+          name: "一集",
           value: 1,
         },
         {
-          text: "二集",
+          name: "二集",
           value: 2,
         },
         {
-          text: "三集",
+          name: "三集",
           value: 3,
         },
         {
-          text: "四集",
+          name: "四集",
           value: 4,
         },
         {
-          text: "五集",
+          name: "五集",
           value: 5,
+        },
+        {
+          name: "关闭",
+          value: 0,
         },
       ],
       end_time: "0:00:00",
@@ -148,134 +173,117 @@ export default {
       percentage: 0,
       skip_start_time: 0,
       skip_end_time: 0,
-      is_play: true,
-      is_show: false,
+      is_play: false,
+      isShow: false,
+      isRate: false,
+      isChapter: false,
+      isList: false,
+      chapterOptions: [],
       url: "",
+      bookImage: "",
       bookId: 0,
-      chapterId: 0,
-      chapterTitle: "",
       refresh: true,
       bookIntro: {},
       bookIntroList: [],
-      next_book: false,
       auto_load: true,
-      watch_status: true,
-      favDict: {},
-      fav: false,
+      bookInfo: {
+        lastChapterTitle: "",
+        bookIntro: {
+          bookImage: "",
+          bookTitle: "",
+        },
+      },
       close_status: false,
+      is_can_play: false,
+      cutChapter: 0,
+      cutChapterList: [],
     };
   },
   mounted() {
     this.getRouteData();
-    this.fetchMusic(false);
+    this.fetchMusic();
   },
   watch: {
     skip_start_time(val) {
       this.skip_start_time = val;
-      this.favDict.skip_start_time = val;
-      if (this.fav) {
-        removeFavSetFavList(this.bookId, this.favDict);
+      this.bookInfo.skip_start_time = val;
+      if (this.bookInfo.fav) {
+        this.$store.dispatch("updateFav", this.bookInfo);
+        this.$store.dispatch("updateCurrentBook", this.bookInfo);
       }
     },
     skip_end_time(val) {
       this.skip_end_time = val;
-      this.favDict.skip_end_time = this.skip_end_time;
-      if (this.fav) {
-        removeFavSetFavList(this.bookId, this.favDict);
+      this.bookInfo.skip_end_time = this.skip_end_time;
+      if (this.bookInfo.fav) {
+        this.$store.dispatch("updateFav", this.bookInfo);
+        this.$store.dispatch("updateCurrentBook", this.bookInfo);
       }
     },
     url() {
       this.refresh = false;
-      this.watch_status = false;
       this.$nextTick(() => {
         this.refresh = true;
-        this.watch_status = true;
       });
     },
   },
   methods: {
+    async fetchMusic() {
+      let params = {
+        bookId: this.bookId,
+        chapterId: this.bookInfo.lastChapterId,
+        uid: 0,
+      };
+      const resp = await bookOne(params);
+      const res = resp.data;
+      if (res.status === 0) {
+        const webviewRes = this.scanclick();
+        if (webviewRes.status === 0) {
+          this.$notify({ type: "primary", message: "请求过快，请稍后再试" });
+          return;
+        } else {
+          this.url = abc(webviewRes.src);
+        }
+      } else {
+        this.url = abc(res.src);
+      }
+      this.auto_load = true;
+      if (this.bookInfo.fav) {
+        this.$store.dispatch("updateFav", this.bookInfo);
+        // removeFavSetFavList(this.bookId, this.bookInfo);
+      }
+    },
     scanclick() {
       const url =
         "https://www.tingxiaoshuo.cc/pc/index/getchapterurl/bookId/" +
         this.bookId +
         "/chapterId/" +
-        this.chapterId +
+        this.bookInfo.lastChapterId +
         ".html";
       var str = window.androidinfo.showInfoFromJs(url);
       const res = JSON.parse(str);
       return res;
     },
-    realFormatSecond(second) {
-      var secondType = typeof second;
-
-      if (secondType === "number" || secondType === "string") {
-        second = parseInt(second);
-
-        var hours = Math.floor(second / 3600);
-        second = second - hours * 3600;
-        var mimute = Math.floor(second / 60);
-        second = second - mimute * 60;
-
-        return (
-          hours +
-          ":" +
-          ("0" + mimute).slice(-2) +
-          ":" +
-          ("0" + second).slice(-2)
-        );
-      } else {
-        return "0:00:00";
-      }
-    },
     getRouteData() {
       this.bookId = this.$route.params.bookId;
-      this.chapterId = this.$route.params.chapterId;
-      this.chapterTitle = this.$route.params.chapterTitle;
-      this.bookIntro = this.$route.params.bookIntro;
-      this.bookIntroList = this.$route.params.bookIntroList;
-      this.favDict = getFav(this.bookId, {
-        bookId: this.bookId,
-        bookIntro: this.bookIntro,
-        bookChapter: this.$route.params.bookChapter,
-        skip_start_time: 0,
-        skip_end_time: 0,
-      });
-      this.skip_start_time = this.favDict.skip_start_time;
-      this.skip_end_time = this.favDict.skip_end_time;
-      this.fav = isFav(this.bookId);
-    },
-    async fetchMusic(play) {
-      // let params = { bookId: this.bookId, chapterId: this.chapterId, uid: 0 };
-      // const resp = await bookOne(params);
-      //  cosnt res = resp.data
-      const res = this.scanclick();
-      if (res.status === 0) {
-        this.$notify({ type: "primary", message: "请求过快，请稍后再试" });
-        return;
-      } else {
-        this.url = this.abc(res.src);
-      }
-      if (play) {
-        setTimeout(this.playMusic, 500);
-      }
-      this.auto_load = true;
-
-      if (this.fav) {
-        removeFavSetFavList(this.bookId, this.favDict);
-      }
-    },
-    abc(u) {
-      var tArr = u.split("*"),
-        str = "";
-      for (var i = 0, n = tArr.length; i < n; i++) {
-        str += String.fromCharCode(tArr[i]);
-      }
-      return str;
+      this.bookInfo = Object.assign({}, this.$store.getters.getCurrentBook);
+      console.log(this.bookInfo);
+      this.bookImage = this.bookInfo.bookIntro.bookImage;
+      this.bookIntroList = this.bookInfo.currentBookListen;
+      this.skip_start_time = this.bookInfo.skip_start_time;
+      this.skip_end_time = this.bookInfo.skip_end_time;
+      this.cutChapter = parseInt(Math.ceil(this.bookIntroList.length / 50));
+      this.cutChapterList = this.bookIntroList.slice(0, 50);
     },
     musicEnd() {
+      console.log("end 播放状态自动关闭");
+      this.is_play = false;
+      this.is_can_play = false;
       console.log(this.close_status, "close_status", this.skip_chapter);
+      console.log(this.$refs.video.paused);
       if (this.close_status) {
-        if (this.skip_chapter === 0) {
+        if (this.skip_chapter <= 1) {
+          this.skip_chapter = 0;
           this.close_status = false;
           return;
         } else {
@@ -283,6 +291,17 @@ export default {
         }
       }
       this.nextMusic();
+    },
+    musicCanPlay() {
+      console.log("in");
+      this.end_time = realFormatSecond(this.$refs.video.duration);
+      this.run_time = realFormatSecond(this.$refs.video.currentTime);
+      this.is_play = true;
+      this.is_can_play = true;
+      console.log(this.$refs.video.paused, this.run_time, this.end_time);
+      if (this.$refs.video.paused) {
+        this.playMusic();
+      }
     },
     onTimeupdate(res) {
       if (this.$refs.video.currentTime < this.skip_start_time) {
@@ -295,94 +314,126 @@ export default {
       ) {
         this.auto_load = false;
         this.$refs.video.currentTime = this.$refs.video.duration;
-
         return;
       }
       this.percentage =
         (parseInt(this.$refs.video.currentTime) /
           parseInt(this.$refs.video.duration)) *
         100;
-      this.run_time = this.realFormatSecond(this.$refs.video.currentTime);
+      this.run_time = realFormatSecond(this.$refs.video.currentTime);
     },
     onChange(value) {
       this.$refs.video.currentTime = (value / 100) * this.$refs.video.duration;
     },
     playMusic() {
-      if (this.$refs.video.paused) {
-        this.is_play = false;
-        this.$refs.video.play();
-      } else {
-        this.is_play = true;
-        this.$refs.video.pause();
-      }
-      if (this.$refs.video.duration) {
-        this.end_time = this.realFormatSecond(this.$refs.video.duration);
-      } else {
+      if (this.is_can_play) {
         if (this.$refs.video.paused) {
-          this.is_play = false;
+          this.is_play = true;
           this.$refs.video.play();
         } else {
-          this.is_play = true;
+          this.is_play = false;
           this.$refs.video.pause();
         }
+        this.end_time = realFormatSecond(this.$refs.video.duration);
+      } else if (this.close_status === false && this.is_can_play === false) {
+        this.nextMusic();
       }
     },
     nextMusic() {
       console.log("下一首");
-      this.is_play = true;
-      this.$refs.video.pause();
-      const next_chapterId = ++this.chapterId;
-      this.bookIntroList.filter((item) => {
-        if (item.chapterId === next_chapterId) {
-          this.chapterTitle = item.chapterTitle;
-          this.next_book = true;
-          this.favDict.bookChapter = item;
+      let next_book = false;
+      let nextChapter = {};
+      console.log(this.bookIntroList);
+      console.log(this.bookInfo.lastChapterId);
+      this.bookIntroList.filter((item, index) => {
+        if (item.chapterId === this.bookInfo.lastChapterId) {
+          const nextChapterIndex = index + 1;
+          if (
+            0 < nextChapterIndex &&
+            nextChapterIndex < this.bookInfo.currentBookListen.length
+          ) {
+            nextChapter = this.bookIntroList[nextChapterIndex];
+            next_book = true;
+          }
         }
       });
-      if (this.next_book) {
-        this.fetchMusic(true);
-        this.next_book = false;
+      if (next_book) {
+        this.bookInfo.lastChapterTitle = nextChapter.chapterTitle;
+        this.bookInfo.lastChapterId = nextChapter.chapterId;
+        this.$store.dispatch("updateFav", this.bookInfo);
+        this.fetchMusic();
       } else {
-        this.chapterId = --this.chapterId;
         this.$notify({ type: "primary", message: "没有更多了！" });
       }
     },
     lastMusic() {
       console.log("上一首");
-      this.is_play = true;
-      this.$refs.video.pause();
-      const next_chapterId = --this.chapterId;
-      this.bookIntroList.filter((item) => {
-        if (item.chapterId === next_chapterId) {
-          this.chapterTitle = item.chapterTitle;
-          this.next_book = true;
-          this.favDict.bookChapter = item;
+      let last_book = false;
+      let lastChapter = {};
+      console.log(this.bookIntroList);
+      console.log(this.bookInfo.lastChapterId);
+      this.bookIntroList.filter((item, index) => {
+        if (item.chapterId === this.bookInfo.lastChapterId) {
+          const lastChapterIndex = index - 1;
+          if (
+            0 < lastChapterIndex &&
+            lastChapterIndex < this.bookInfo.currentBookListen.length
+          ) {
+            lastChapter = this.bookIntroList[lastChapterIndex];
+            last_book = true;
+          }
         }
       });
-      if (this.next_book) {
-        this.fetchMusic(true);
-        this.next_book = false;
+      if (last_book) {
+        this.bookInfo.lastChapterTitle = lastChapter.chapterTitle;
+        this.bookInfo.lastChapterId = lastChapter.chapterId;
+        this.$store.dispatch("updateFav", this.bookInfo);
+        this.fetchMusic();
       } else {
-        this.chapterId = ++this.chapterId;
         this.$notify({ type: "primary", message: "已经到头了！" });
       }
     },
-    skipTime() {},
-    onShow() {
-      this.is_show = !this.is_show;
-    },
-    playbackRate(value) {
-      this.$refs.video.playbackRate = this.rate_play;
-    },
-    skipChapter(value) {
-      console.log(value);
-      if (value > 0) {
-        this.close_status = true;
-      }
-      this.skip_chapter = value;
-    },
     addTime(value) {
       this.$refs.video.currentTime += value;
+    },
+    onSelectRate(item) {
+      this.isRate = false;
+      this.rate_play = item.value;
+      this.$refs.video.playbackRate = this.rate_play;
+      console.log(item);
+    },
+    onSelectChapter(item) {
+      this.isChapter = false;
+      if (item.value === 0) {
+        this.close_status = false;
+      } else {
+        this.close_status = true;
+      }
+      this.skip_chapter = item.value;
+      console.log(item);
+    },
+    onSelectShow(item) {
+      this.isShow = false;
+    },
+    onSelectChapterOptions(item) {
+      console.log("jj");
+      this.isList = false;
+    },
+    playClickChapter(item) {
+      console.log(item);
+      this.bookInfo.lastChapterTitle = item.chapterTitle;
+      this.bookInfo.lastChapterId = item.chapterId;
+      this.$store.dispatch("updateFav", this.bookInfo);
+      this.isList = false;
+      this.fetchMusic();
+    },
+    showCutChapter(val) {
+      const start_chapter = val * 50 - 50;
+      const end_chapter = val * 50;
+      this.cutChapterList = this.bookIntroList.slice(
+        start_chapter,
+        end_chapter
+      );
     },
   },
 };
@@ -401,6 +452,7 @@ export default {
 .music-back {
   background-image: linear-gradient(to top, #5ee7df 0%, #b490ca 100%);
   height: 100%;
+  overflow: hidden;
 }
 .video {
   display: none;
@@ -413,7 +465,7 @@ export default {
   flex-flow: row wrap;
   .music-img {
     margin: 25%;
-    height: 45%;
+    height: 43%;
     img {
       width: 100%;
     }
@@ -435,6 +487,10 @@ export default {
         width: 20%;
         text-align: center;
         margin: 0 auto;
+      }
+      p {
+        height: 25px;
+        line-height: 25px;
       }
     }
     .music-progress {
@@ -459,34 +515,27 @@ export default {
       display: flex;
       justify-content: space-around;
       align-items: center;
-      margin-bottom: 20px;
+      // margin-bottom: 20px;
     }
   }
 }
-.wrapper {
+.slider {
+  height: 120px;
+  width: 100%;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  .slider {
-    height: 120px;
+  flex-flow: row wrap;
+  .slider-tab {
     width: 100%;
     display: flex;
-    flex-flow: row wrap;
-    .slider-tab {
+    align-items: center;
+    justify-content: space-around;
+    div {
       width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      div {
-        width: 100%;
-        margin: 0 5%;
-      }
-      p {
-        color: aliceblue;
-        width: 55%;
-        margin-left: 5%;
-      }
+      margin: 0 5%;
+    }
+    p {
+      width: 55%;
+      margin-left: 5%;
     }
   }
 }

@@ -1,54 +1,58 @@
-export function saveCurrentBook(book){
-    localStorage.setItem('book',JSON.stringify(book)) 
-}
-export function loadCurrentBook(){
-    let book = localStorage.getItem('book') || '{}'
-    return JSON.parse(book)
-}
-
-export function loadFavList() {
-    let favList = localStorage.getItem('favList') || '[]'
-    return JSON.parse(favList)
+export function abc(u) {
+    var tArr = u.split("*"),
+        str = "";
+    for (var i = 0, n = tArr.length; i < n; i++) {
+        str += String.fromCharCode(tArr[i]);
+    }
+    return str;
 }
 
 
-export function setFavList(favList) {
-    favList = favList.filter((n) => n);
-    favList = JSON.stringify(favList);
-    localStorage.setItem("favList", favList);
+export function realFormatSecond(second) {
+    var secondType = typeof second;
+
+    if (secondType === "number" || secondType === "string") {
+        second = parseInt(second);
+
+        var hours = Math.floor(second / 3600);
+        second = second - hours * 3600;
+        var mimute = Math.floor(second / 60);
+        second = second - mimute * 60;
+
+        return (
+            hours +
+            ":" +
+            ("0" + mimute).slice(-2) +
+            ":" +
+            ("0" + second).slice(-2)
+        );
+    } else {
+        return "0:00:00";
+    }
 }
-export function removeFavSetFavList(bookId, favDict) {
-    let favList = loadFavList()
-    favList.filter((item, index) => {
-        if (item.bookId === bookId) {
-            delete favList[index];
-        }
-    });
-    favList.push(favDict);
-    setFavList(favList)
-}
-export function pushFavSetFavList(favDict) {
-    let favList = loadFavList()
-    favList.push(favDict);
-    setFavList(favList)
-}
-export function isFav(bookId) {
-    let favList = loadFavList()
-    let is_fav = false
+
+
+export function getFavBookByBookId(favList, bookId) {
+    let favBook ;
+    console.log(favList)
     favList.filter((item) => {
+        console.log(item)
         if (item.bookId === bookId) {
-            is_fav = true
+            favBook = item
         }
     });
-    return is_fav
+    console.log('fav',favBook)
+    return favBook
+
 }
-export function getFav(bookId,defaultFav={}) {
-    let favList = loadFavList()
-    let fav = defaultFav
-    favList.filter((item) => {
-        if (item.bookId === bookId) {
-            fav = item
+export function getSearchBookByBookId(searchList, bookId) {
+    let searchBook;
+    searchList.filter((item) => {
+        if (item.id === bookId) {
+            searchBook = item
         }
     });
-    return fav
+    console.log('search',searchBook)
+    return searchBook
 }
+

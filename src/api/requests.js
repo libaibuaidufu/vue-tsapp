@@ -10,10 +10,9 @@ const service = axios.create({
 // request interceptor
 service.interceptors.request.use(
     request => {
-        request.headers={
-            'accept': 'application/json, text/javascript, */*; q=0.01',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36'
-        }
+        // request.headers={
+        //     'accept': 'application/json, text/javascript, */*; q=0.01',
+        // }
         return request
     },
     error => {
@@ -35,22 +34,6 @@ service.interceptors.response.use(
 
 
 export default {
-    pcget(url, param = {}) {//get请求
-        return new Promise((resolve) => {
-            service({
-                headers: {
-                    'accept': 'application/json, text/javascript, */*; q=0.01',
-                    // 'Referer': 'https://www.tingxiaoshuo.cc',
-                    // 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36'
-                },
-                method: 'get',
-                url,
-                params: param,
-            }).then(res => {
-                resolve(res)
-            })
-        })
-    },
     get(url, param = {}) {//get请求
         return new Promise((resolve) => {
             service({

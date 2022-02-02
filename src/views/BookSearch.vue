@@ -24,7 +24,7 @@ export default {
         name: `BookInfo`,
         query: {
           id: item.id,
-          bookIntro: item,
+          // bookIntro: item,
         },
       });
     },

@@ -23,16 +23,14 @@ export default {
     };
   },
   mounted() {
-    this.favList = loadFavList()
+    this.favList = this.$store.getters.getFavList;
   },
   methods: {
     pushToInfo(item) {
-      console.log(item);
       this.$router.push({
         name: `BookInfo`,
         query: {
-          id: item.bookId,
-          bookIntro: item.bookIntro,
+          id: item.bookId
         },
       });
     },
