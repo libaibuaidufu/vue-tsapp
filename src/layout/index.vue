@@ -253,7 +253,9 @@ export default {
       cutChapterList: [],
     };
   },
-  mounted() {},
+  mounted() {
+    // window.saveLocalPlayTime = this.saveLocalPlayTime
+  },
   computed: {
     show: {
       get() {
@@ -267,7 +269,7 @@ export default {
     key() {
       this.tab_active = this.$route.name;
       console.log(this.$route.name);
-      window.androidinfo.saveCurrentPath(this.$route.name)
+      window.androidinfo.saveCurrentPath(this.$route.name);
       return this.$route.path;
     },
     title() {
@@ -309,6 +311,13 @@ export default {
     },
   },
   methods: {
+    // saveLocalPlayTime(){
+    //     this.bookInfo.lastChapterTime = this.$refs.video.currentTime;
+    //     this.$store.dispatch("updateCurrentBook",this.bookInfo)
+    //     if(this.bookInfo.fav){
+    //       this.$store.dispatch("updateFav",this.bookInfo)
+    //     }
+    // },
     async bookSearch(val) {
       this.keyword = val;
       const params = {
@@ -330,14 +339,14 @@ export default {
     getRouteData() {
       // this.bookId = this.$route.params.bookId;
       const bookInfo = Object.assign({}, this.$store.getters.getCurrentBook);
-      console.log('2',this.bookInfo);
-      console.log('3',bookInfo);
+      console.log("2", this.bookInfo);
+      console.log("3", bookInfo);
       if (bookInfo.bookId) {
         if (
           bookInfo.bookId !== this.bookId ||
-          bookInfo.lastChapterId !=
-            this.bookInfo.lastChapterId
+          bookInfo.lastChapterId != this.bookInfo.lastChapterId
         ) {
+          // this.saveLocalPlayTime()
           this.show = true;
           this.bookInfo = bookInfo;
           this.bookId = this.bookInfo.bookId;
@@ -421,10 +430,6 @@ export default {
         this.url = abc(res.src);
       }
       this.auto_load = true;
-      if (this.bookInfo.fav) {
-        this.$store.dispatch("updateFav", this.bookInfo);
-        // removeFavSetFavList(this.bookId, this.bookInfo);
-      }
     },
     scanclick() {
       const url =
@@ -447,6 +452,7 @@ export default {
           this.is_play = true;
           this.$refs.video.play();
         } else {
+          // this.saveLocalPlayTime()
           this.is_play = false;
           this.$refs.video.pause();
         }
@@ -476,7 +482,10 @@ export default {
       if (next_book) {
         this.bookInfo.lastChapterTitle = nextChapter.chapterTitle;
         this.bookInfo.lastChapterId = nextChapter.chapterId;
-        this.$store.dispatch("updateFav", this.bookInfo);
+        if (this.bookInfo.fav) {
+          this.$store.dispatch("updateFav", this.bookInfo);
+        }
+        this.$store.dispatch("updateCurrentBook", this.bookInfo);
         this.fetchMusic();
       } else {
         this.$notify({ type: "primary", message: "没有更多了！" });
@@ -503,7 +512,10 @@ export default {
       if (last_book) {
         this.bookInfo.lastChapterTitle = lastChapter.chapterTitle;
         this.bookInfo.lastChapterId = lastChapter.chapterId;
-        this.$store.dispatch("updateFav", this.bookInfo);
+        if (this.bookInfo.fav) {
+          this.$store.dispatch("updateFav", this.bookInfo);
+        }
+        this.$store.dispatch("updateCurrentBook", this.bookInfo);
         this.fetchMusic();
       } else {
         this.$notify({ type: "primary", message: "已经到头了！" });
@@ -539,7 +551,10 @@ export default {
       console.log(item);
       this.bookInfo.lastChapterTitle = item.chapterTitle;
       this.bookInfo.lastChapterId = item.chapterId;
-      this.$store.dispatch("updateFav", this.bookInfo);
+      if (this.bookInfo.fav) {
+        this.$store.dispatch("updateFav", this.bookInfo);
+      }
+      this.$store.dispatch("updateCurrentBook", this.bookInfo);
       this.isList = false;
       this.fetchMusic();
     },

@@ -10,7 +10,7 @@ const state = {   //要设置的全局访问的state对象
         bookIntro: {},
         lastChapterTitle: '',
         lastChapterId: 0,
-        lsatChapterTime: 0,
+        lastChapterTime: 0,
         fav: false,
         skip_start_time: 0,
         skip_end_time: 0,

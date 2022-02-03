@@ -11,7 +11,7 @@ export default {
   computed: {
     show() {
       return this.$store.getters.getIsShow;
-    },
+    }
   },
   methods: {
     goback() {
@@ -20,7 +20,7 @@ export default {
       } else {
         this.$router.go(-1);
       }
-    },
+    }
   },
 };
 </script>
