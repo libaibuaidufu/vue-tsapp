@@ -8,9 +8,18 @@ export default {
   mounted() {
     window.callJsFunction = this.goback;
   },
+  computed: {
+    show() {
+      return this.$store.getters.getIsShow;
+    },
+  },
   methods: {
     goback() {
-      this.$router.go(-1);
+      if (this.show) {
+        this.$store.dispatch("updateIsShow", false);
+      } else {
+        this.$router.go(-1);
+      }
     },
   },
 };

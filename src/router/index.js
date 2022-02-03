@@ -25,12 +25,19 @@ const routes = [
         meta:{title:"详情",isReturn:true},
         component: () => import('../views/BookInfo.vue'),
       }
+      // ,{
+      //   path:'/playMusic',
+      //   name:'PlayMusic',
+      //   meta:{title:"播放",isReturn:true},
+      //   component:()=>import('../views/PlayMusic.vue')
+      // }
     ]
-  },{
-    path:'/playMusic',
-    name:'PlayMusic',
-    component:()=>import('../views/PlayMusic.vue')
   }
+  // ,{
+  //   path:'/playMusic',
+  //   name:'PlayMusic',
+  //   component:()=>import('../views/PlayMusic.vue')
+  // }
 ]
 
 const router = new VueRouter({

@@ -44,7 +44,23 @@
         {{ bookInfo.lastChapterTitle }}
       </p>
       <div class="book-listen-list">
-        <van-list
+        <van-grid clickable :gutter="5">
+          <van-grid-item
+            :text="(item - 1) * 50 + 1 + '-' + item * 50"
+            v-for="item in cutChapter"
+            :key="item"
+            @click="showCutChapter(item)"
+          />
+        </van-grid>
+        <van-list>
+          <van-cell
+            v-for="item in cutChapterList"
+            :key="item.chapterId"
+            :title="item.chapterTitle"
+            @click="pushToMusic(item)"
+          />
+        </van-list>
+        <!-- <van-list
           v-model="loading"
           :finished="finished"
           finished-text="没有更多了"
@@ -55,7 +71,7 @@
             :title="item.chapterTitle"
             @click="pushToMusic(item)"
           />
-        </van-list>
+        </van-list> -->
       </div>
     </div>
   </van-pull-refresh>
@@ -77,6 +93,8 @@ export default {
       loading: false,
       finished: true,
       fav: false,
+      cutChapter: 0,
+      cutChapterList: [],
       bookInfo: {
         bookId: 0,
         bookIntro: {},
@@ -95,7 +113,7 @@ export default {
     onRefresh() {
       this.fetchBookListen();
       this.isLoading = false;
-      this.$notify({ type: 'success', message: '刷新成功' });
+      this.$notify({ type: "success", message: "刷新成功" });
     },
     getRouterData() {
       const bookId = parseInt(this.$route.query.id);
@@ -116,8 +134,11 @@ export default {
       } else {
         this.bookInfo = Object.assign({}, favBook);
         this.bookIntroList = this.bookInfo.currentBookListen;
+
         this.loading = true;
       }
+      this.cutChapter = parseInt(Math.ceil(this.bookIntroList.length / 50));
+      this.cutChapterList = this.bookIntroList.slice(0, 50);
       this.fav = this.bookInfo.fav;
     },
     pushToMusic(item) {
@@ -128,12 +149,7 @@ export default {
       if (this.bookInfo.fav) {
         this.$store.dispatch("updateFav", this.bookInfo);
       }
-      this.$router.push({
-        name: `PlayMusic`,
-        params: {
-          bookId: this.bookInfo.bookId,
-        },
-      });
+      this.$emit("showModule");
     },
     async fetchBookInfo() {
       const res = await bookInfo({
@@ -153,9 +169,20 @@ export default {
       this.loading = true;
       this.bookInfo.bookIntro.count = this.bookIntroList.length;
       this.bookInfo.currentBookListen = this.bookIntroList;
+      this.cutChapter = parseInt(Math.ceil(this.bookIntroList.length / 50));
+      this.cutChapterList = this.bookIntroList.slice(0, 50);
+
       if (this.bookInfo.fav) {
         this.$store.dispatch("updateFav", this.bookInfo);
       }
+    },
+    showCutChapter(val) {
+      const start_chapter = val * 50 - 50;
+      const end_chapter = val * 50;
+      this.cutChapterList = this.bookIntroList.slice(
+        start_chapter,
+        end_chapter
+      );
     },
     isFav() {
       this.fav = !this.fav;

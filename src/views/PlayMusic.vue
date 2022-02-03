@@ -1,6 +1,6 @@
 <template>
   <div class="music-back">
-    <video
+    <!-- <video
       ref="video"
       class="video"
       @canplay="musicCanPlay"
@@ -9,7 +9,7 @@
       v-if="refresh"
     >
       <source :src="url" type="video/mp4" />
-    </video>
+    </video> -->
     <div class="music-play">
       <div class="music-img">
         <img :src="bookInfo.bookIntro.bookImage" alt="" />
@@ -168,24 +168,23 @@ export default {
           value: 0,
         },
       ],
-      end_time: "0:00:00",
-      run_time: "0:00:00",
-      percentage: 0,
-      skip_start_time: 0,
-      skip_end_time: 0,
-      is_play: false,
       isShow: false,
       isRate: false,
       isChapter: false,
       isList: false,
       chapterOptions: [],
+
+      end_time: "0:00:00",
+      run_time: "0:00:00",
+      percentage: 0,
+      skip_start_time: 0,
+      skip_end_time: 0,
+
       url: "",
       bookImage: "",
       bookId: 0,
       refresh: true,
-      bookIntro: {},
       bookIntroList: [],
-      auto_load: true,
       bookInfo: {
         lastChapterTitle: "",
         bookIntro: {
@@ -193,7 +192,10 @@ export default {
           bookTitle: "",
         },
       },
+
+      auto_load: true,
       close_status: false,
+      is_play: false,
       is_can_play: false,
       cutChapter: 0,
       cutChapterList: [],
@@ -228,42 +230,6 @@ export default {
     },
   },
   methods: {
-    async fetchMusic() {
-      let params = {
-        bookId: this.bookId,
-        chapterId: this.bookInfo.lastChapterId,
-        uid: 0,
-      };
-      const resp = await bookOne(params);
-      const res = resp.data;
-      if (res.status === 0) {
-        const webviewRes = this.scanclick();
-        if (webviewRes.status === 0) {
-          this.$notify({ type: "primary", message: "请求过快，请稍后再试" });
-          return;
-        } else {
-          this.url = abc(webviewRes.src);
-        }
-      } else {
-        this.url = abc(res.src);
-      }
-      this.auto_load = true;
-      if (this.bookInfo.fav) {
-        this.$store.dispatch("updateFav", this.bookInfo);
-        // removeFavSetFavList(this.bookId, this.bookInfo);
-      }
-    },
-    scanclick() {
-      const url =
-        "https://www.tingxiaoshuo.cc/pc/index/getchapterurl/bookId/" +
-        this.bookId +
-        "/chapterId/" +
-        this.bookInfo.lastChapterId +
-        ".html";
-      var str = window.androidinfo.showInfoFromJs(url);
-      const res = JSON.parse(str);
-      return res;
-    },
     getRouteData() {
       this.bookId = this.$route.params.bookId;
       this.bookInfo = Object.assign({}, this.$store.getters.getCurrentBook);
@@ -322,6 +288,44 @@ export default {
         100;
       this.run_time = realFormatSecond(this.$refs.video.currentTime);
     },
+    async fetchMusic() {
+      return;
+      let params = {
+        bookId: this.bookId,
+        chapterId: this.bookInfo.lastChapterId,
+        uid: 0,
+      };
+      const resp = await bookOne(params);
+      const res = resp.data;
+      if (res.status === 0) {
+        const webviewRes = this.scanclick();
+        if (webviewRes.status === 0) {
+          this.$notify({ type: "primary", message: "请求过快，请稍后再试" });
+          return;
+        } else {
+          this.url = abc(webviewRes.src);
+        }
+      } else {
+        this.url = abc(res.src);
+      }
+      this.auto_load = true;
+      if (this.bookInfo.fav) {
+        this.$store.dispatch("updateFav", this.bookInfo);
+        // removeFavSetFavList(this.bookId, this.bookInfo);
+      }
+    },
+    scanclick() {
+      const url =
+        "https://www.tingxiaoshuo.cc/pc/index/getchapterurl/bookId/" +
+        this.bookId +
+        "/chapterId/" +
+        this.bookInfo.lastChapterId +
+        ".html";
+      var str = window.androidinfo.showInfoFromJs(url);
+      const res = JSON.parse(str);
+      return res;
+    },
+
     onChange(value) {
       this.$refs.video.currentTime = (value / 100) * this.$refs.video.duration;
     },

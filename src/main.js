@@ -4,7 +4,7 @@ import router from './router'
 import Vant from 'vant';
 import store from './store'
 import 'vant/lib/index.css';
-import '@/utils/appback.js'
+// import '@/utils/appback.js'
 
 // Vue Plugin.
 Vue.config.productionTip = false
