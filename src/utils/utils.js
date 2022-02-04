@@ -4,6 +4,7 @@ export function abc(u) {
     for (var i = 0, n = tArr.length; i < n; i++) {
         str += String.fromCharCode(tArr[i]);
     }
+    console.log(str)
     return str;
 }
 

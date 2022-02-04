@@ -39,12 +39,90 @@
       @changeShow="getRouteData"
       v-if="this.$route.name !== 'PlayMusic'"
     />
+    <div class="music-skip">
+      <!-- <p @click="isShow = true">跳过头尾</p> -->
+      <!-- <p @click="isRate = true">播放速度X{{ rate_play }}</p> -->
+      <!-- <p @click="isChapter = true" v-if="skip_chapter === 0">
+                  定时关闭
+                </p>
+                <p @click="isChapter = true" v-else>剩余{{ skip_chapter }}集</p> -->
+      <!-- <p @click="isList = true">集数列表</p> -->
+      <van-action-sheet
+        v-model="isShow"
+        title="跳过头尾"
+        @select="onSelectShow"
+      >
+        <div class="slider">
+          <div class="slider-tab">
+            <p>跳过开头</p>
+            <van-stepper
+              v-model="skip_start_time"
+              min="0"
+              max="120"
+              name="跳过开头"
+              integer
+            />
+          </div>
+          <div class="slider-tab">
+            <p>跳过结尾</p>
+            <van-stepper
+              v-model="skip_end_time"
+              min="0"
+              max="120"
+              name="跳过结尾："
+              integer
+            />
+          </div>
+        </div>
+      </van-action-sheet>
+      <van-action-sheet
+        v-model="isRate"
+        :actions="rate_option"
+        title="播放速度"
+        @select="onSelectRate"
+      />
+      <van-action-sheet
+        v-model="isChapter"
+        :actions="skip_options"
+        title="定时关闭"
+        @select="onSelectChapter"
+      />
+      <van-action-sheet
+        v-model="isList"
+        title="集数列表"
+        @select="onSelectChapterOptions"
+      >
+        <van-grid clickable :gutter="5">
+          <van-grid-item
+            :text="(item - 1) * 50 + 1 + '-' + item * 50"
+            v-for="item in cutChapter"
+            :key="item"
+            @click="showCutChapter(item)"
+          />
+        </van-grid>
+        <van-list>
+          <van-cell
+            v-for="item in cutChapterList"
+            :key="item.chapterId"
+            :title="item.chapterTitle"
+            @click="playClickChapter(item)"
+          />
+        </van-list>
+      </van-action-sheet>
+    </div>
     <van-overlay :show="show">
       <div class="wrapper" @click.stop>
         <div class="music-back">
-          <van-nav-bar left-arrow @click-left="onClickLeft" />
           <!-- <div  class="down"><van-icon name="down" /></div> -->
           <div class="music-play">
+            <!-- <div class="music-return">
+              <van-icon name="shrink" @click="onClickLeft" size="2rem" />
+            </div> -->
+            <van-nav-bar
+              left-arrow
+              @click-left="onClickLeft"
+              class="music-return"
+            />
             <div class="music-img">
               <img :src="bookInfo.bookIntro.bookImage" alt="" />
               <div class="book-info">
@@ -54,78 +132,11 @@
               </div>
             </div>
             <div class="music-control">
-              <div class="music-skip">
-                <p @click="isShow = true">跳过头尾</p>
-                <p @click="isRate = true">播放速度X{{ rate_play }}</p>
-                <p @click="isChapter = true" v-if="skip_chapter === 0">
-                  定时关闭
-                </p>
-                <p @click="isChapter = true" v-else>剩余{{ skip_chapter }}集</p>
-                <p @click="isList = true">集数列表</p>
-                <div>
-                  <van-action-sheet
-                    v-model="isShow"
-                    title="跳过头尾"
-                    @select="onSelectShow"
-                  >
-                    <div class="slider">
-                      <div class="slider-tab">
-                        <p>跳过开头</p>
-                        <van-stepper
-                          v-model="skip_start_time"
-                          min="0"
-                          max="120"
-                          name="跳过开头"
-                          integer
-                        />
-                      </div>
-                      <div class="slider-tab">
-                        <p>跳过结尾</p>
-                        <van-stepper
-                          v-model="skip_end_time"
-                          min="0"
-                          max="120"
-                          name="跳过结尾："
-                          integer
-                        />
-                      </div>
-                    </div>
-                  </van-action-sheet>
-                  <van-action-sheet
-                    v-model="isRate"
-                    :actions="rate_option"
-                    title="播放速度"
-                    @select="onSelectRate"
-                  />
-                  <van-action-sheet
-                    v-model="isChapter"
-                    :actions="skip_options"
-                    title="定时关闭"
-                    @select="onSelectChapter"
-                  />
-                  <van-action-sheet
-                    v-model="isList"
-                    title="集数列表"
-                    @select="onSelectChapterOptions"
-                  >
-                    <van-grid clickable :gutter="5">
-                      <van-grid-item
-                        :text="(item - 1) * 50 + 1 + '-' + item * 50"
-                        v-for="item in cutChapter"
-                        :key="item"
-                        @click="showCutChapter(item)"
-                      />
-                    </van-grid>
-                    <van-list>
-                      <van-cell
-                        v-for="item in cutChapterList"
-                        :key="item.chapterId"
-                        :title="item.chapterTitle"
-                        @click="playClickChapter(item)"
-                      />
-                    </van-list>
-                  </van-action-sheet>
-                </div>
+              <div class="music-icon">
+                <van-icon name="ellipsis" @click="isShow = true" />
+                <van-icon name="add-o" @click="isRate = true" />
+                <van-icon name="clock-o" @click="isChapter = true" />
+                <van-icon name="setting-o" @click="isList = true" />
               </div>
               <div class="music-progress">
                 <div class="run-time">{{ run_time }}</div>
@@ -134,7 +145,7 @@
                 </div>
                 <div class="end-time">{{ end_time }}</div>
               </div>
-              <div class="music-play">
+              <div class="music-plays">
                 <p @click="addTime(-10)">-10s</p>
                 <van-icon name="arrow-left" @click="lastMusic" />
                 <van-icon name="play" v-if="!is_play" @click="playMusic" />
@@ -253,23 +264,22 @@ export default {
       cutChapterList: [],
     };
   },
-  mounted() {
-    // window.saveLocalPlayTime = this.saveLocalPlayTime
-  },
   computed: {
     show: {
       get() {
         return this.$store.getters.getIsShow;
       },
       set(val) {
-        console.log("jj");
         this.$store.dispatch("updateIsShow", val);
       },
     },
     key() {
       this.tab_active = this.$route.name;
-      console.log(this.$route.name);
-      window.androidinfo.saveCurrentPath(this.$route.name);
+      try {
+        window.androidinfo.saveCurrentPath(this.$route.name);
+      } catch (err) {
+        console.log("web运行");
+      }
       return this.$route.path;
     },
     title() {
@@ -311,20 +321,12 @@ export default {
     },
   },
   methods: {
-    // saveLocalPlayTime(){
-    //     this.bookInfo.lastChapterTime = this.$refs.video.currentTime;
-    //     this.$store.dispatch("updateCurrentBook",this.bookInfo)
-    //     if(this.bookInfo.fav){
-    //       this.$store.dispatch("updateFav",this.bookInfo)
-    //     }
-    // },
     async bookSearch(val) {
       this.keyword = val;
       const params = {
         search: this.keyword,
       };
       const res = await bookSearch(params);
-      // window.androidinfo.showLogs(JSON.stringify(res))
       this.$store.dispatch("setSearchList", res.data.data.bookData);
       this.searchBook = res.data.data.bookData;
     },
@@ -337,16 +339,16 @@ export default {
       }
     },
     getRouteData() {
-      // this.bookId = this.$route.params.bookId;
       const bookInfo = Object.assign({}, this.$store.getters.getCurrentBook);
-      console.log("2", this.bookInfo);
-      console.log("3", bookInfo);
       if (bookInfo.bookId) {
         if (
           bookInfo.bookId !== this.bookId ||
           bookInfo.lastChapterId != this.bookInfo.lastChapterId
         ) {
-          // this.saveLocalPlayTime()
+          if (this.is_play) {
+            console.log("暂停了在播放");
+            this.playMusic();
+          }
           this.show = true;
           this.bookInfo = bookInfo;
           this.bookId = this.bookInfo.bookId;
@@ -366,8 +368,6 @@ export default {
       console.log("end 播放状态自动关闭");
       this.is_play = false;
       this.is_can_play = false;
-      console.log(this.close_status, "close_status", this.skip_chapter);
-      console.log(this.$refs.video.paused);
       if (this.close_status) {
         if (this.skip_chapter <= 1) {
           this.skip_chapter = 0;
@@ -380,12 +380,10 @@ export default {
       this.nextMusic();
     },
     musicCanPlay() {
-      console.log("in");
       this.end_time = realFormatSecond(this.$refs.video.duration);
       this.run_time = realFormatSecond(this.$refs.video.currentTime);
       this.is_play = true;
       this.is_can_play = true;
-      console.log(this.$refs.video.paused, this.run_time, this.end_time);
       if (this.$refs.video.paused) {
         this.playMusic();
       }
@@ -438,9 +436,13 @@ export default {
         "/chapterId/" +
         this.bookInfo.lastChapterId +
         ".html";
-      var str = window.androidinfo.showInfoFromJs(url);
-      const res = JSON.parse(str);
-      return res;
+      try {
+        var str = window.androidinfo.showInfoFromJs(url);
+        const res = JSON.parse(str);
+        return res;
+      } catch (error) {
+        return { status: 0 };
+      }
     },
 
     onChange(value) {
@@ -452,7 +454,6 @@ export default {
           this.is_play = true;
           this.$refs.video.play();
         } else {
-          // this.saveLocalPlayTime()
           this.is_play = false;
           this.$refs.video.pause();
         }
@@ -465,8 +466,6 @@ export default {
       console.log("下一首");
       let next_book = false;
       let nextChapter = {};
-      console.log(this.bookIntroList);
-      console.log(this.bookInfo.lastChapterId);
       this.bookIntroList.filter((item, index) => {
         if (item.chapterId === this.bookInfo.lastChapterId) {
           const nextChapterIndex = index + 1;
@@ -495,8 +494,6 @@ export default {
       console.log("上一首");
       let last_book = false;
       let lastChapter = {};
-      console.log(this.bookIntroList);
-      console.log(this.bookInfo.lastChapterId);
       this.bookIntroList.filter((item, index) => {
         if (item.chapterId === this.bookInfo.lastChapterId) {
           const lastChapterIndex = index - 1;
@@ -528,7 +525,6 @@ export default {
       this.isRate = false;
       this.rate_play = item.value;
       this.$refs.video.playbackRate = this.rate_play;
-      console.log(item);
     },
     onSelectChapter(item) {
       this.isChapter = false;
@@ -538,17 +534,14 @@ export default {
         this.close_status = true;
       }
       this.skip_chapter = item.value;
-      console.log(item);
     },
     onSelectShow(item) {
       this.isShow = false;
     },
     onSelectChapterOptions(item) {
-      console.log("jj");
       this.isList = false;
     },
     playClickChapter(item) {
-      console.log(item);
       this.bookInfo.lastChapterTitle = item.chapterTitle;
       this.bookInfo.lastChapterId = item.chapterId;
       if (this.bookInfo.fav) {
@@ -646,75 +639,101 @@ $foot-height: 50px;
     height: 20px;
   }
 }
+.music-skip {
+  width: 100%;
+  text-align: center;
+  .rate-play {
+    width: 20%;
+    text-align: center;
+    margin: 0 auto;
+  }
+  p {
+    height: 25px;
+    line-height: 25px;
+  }
+}
 .music-back {
   background-image: linear-gradient(to top, #5ee7df 0%, #b490ca 100%);
   height: 100%;
+  width: 100%;
   overflow: hidden;
+  position: relative;
+
+  .music-play {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    .music-return {
+      // position: absolute;
+      width: 100%;
+      padding-left: 15px;
+      height: 5%;
+      width: 100%;
+      position: absolute;
+      /* left: 20px; */
+      line-height: 40px;
+    }
+    .music-img {
+      margin: 25%;
+      height: 60%;
+      overflow: hidden;
+      img {
+        width: 100%;
+      }
+      .book-info {
+        text-align: center;
+        p {
+          margin: 2px;
+        }
+      }
+    }
+    .music-control {
+      width: 100%;
+      height: 25%;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      flex-flow: row wrap;
+
+      .music-icon {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 10%;
+        justify-content: space-around;
+      }
+      .music-progress {
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        .music-pro {
+          width: 100%;
+          margin: 0 5%;
+        }
+        .run-time {
+          margin-left: 5%;
+        }
+        .end-time {
+          margin-right: 5%;
+        }
+      }
+      .music-plays {
+        height: 30%;
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        // margin-bottom: 20px;
+      }
+    }
+  }
 }
 .video {
   display: none;
-}
-.music-play {
-  width: 100%;
-  height: 90%;
-  display: flex;
-  justify-items: flex-start;
-  flex-flow: row wrap;
-  .music-img {
-    margin: 25%;
-    height: 43%;
-    img {
-      width: 100%;
-    }
-    .book-info {
-      text-align: center;
-    }
-  }
-  .music-control {
-    width: 100%;
-    height: 30%;
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    flex-flow: row wrap;
-    .music-skip {
-      width: 100%;
-      text-align: center;
-      .rate-play {
-        width: 20%;
-        text-align: center;
-        margin: 0 auto;
-      }
-      p {
-        height: 25px;
-        line-height: 25px;
-      }
-    }
-    .music-progress {
-      width: 100%;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      .music-pro {
-        width: 100%;
-        margin: 0 5%;
-      }
-      .run-time {
-        margin-left: 5%;
-      }
-      .end-time {
-        margin-right: 5%;
-      }
-    }
-    .music-play {
-      height: 30%;
-      width: 100%;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      // margin-bottom: 20px;
-    }
-  }
 }
 .slider {
   height: 120px;

@@ -16,8 +16,8 @@ const state = {   //要设置的全局访问的state对象
         skip_end_time: 0,
         currentBookListen: []
     },
-    isShow:false,
-    isPlay:false,
+    isShow: false,
+    isPlay: false,
     //要设置的初始属性值
 };
 const getters = {   //实时监听state值的变化(最新状态)
@@ -30,10 +30,10 @@ const getters = {   //实时监听state值的变化(最新状态)
     getCurrentBook() {
         return state.currentBook
     },
-    getIsPlay(){
+    getIsPlay() {
         return state.isPlay
     },
-    getIsShow(){
+    getIsShow() {
         return state.isShow
     }
 };
@@ -47,19 +47,23 @@ const mutations = {
     newCurrentBook(state, currentBook) {
         state.currentBook = currentBook
     },
-    changeIsPlay(state,isPlay){
+    changeIsPlay(state, isPlay) {
         state.isPlay = isPlay
     },
-    changeIsShow(state,isShow){
+    changeIsShow(state, isShow) {
         state.isShow = isShow
     }
 };
 const actions = {
-    updateIsPlay(context,isPlay){
+    updateIsPlay(context, isPlay) {
         context.commit('changeIsPlay', isPlay)
     },
-    updateIsShow(context,isShow){
-        window.androidinfo.saveShow(isShow)
+    updateIsShow(context, isShow) {
+        try {
+            window.androidinfo.saveShow(isShow)
+        } catch (error) {
+            console.log('web运行')
+        }
         context.commit('changeIsShow', isShow)
     },
     updateFavList(context, favList) {
