@@ -26,7 +26,7 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ### 未实现功能
 ~~如果退出播放页面则无法播放，这个是设计的问题。~~
-
+vuex本身应该是一动全身自动改变，而我却定义了过多的变量导致无法自动更新展示。
 ### 打包
 将`yarn build`后的dist文件夹的内容放在 `tsapp/app/src/main/assets`中就可以直接用`android studio`打包了
 

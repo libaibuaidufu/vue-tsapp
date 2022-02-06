@@ -80,7 +80,7 @@
 <script>
 import BookFooter from "../components/BookFooter.vue";
 import BookReHead from "../components/BookReHead.vue";
-import { bookInfo, bookListen } from "../api/book";
+import { bookInfo, bookListen, bookRListen } from "../api/book";
 import { getFavBookByBookId, getSearchBookByBookId } from "../utils/utils";
 
 export default {
@@ -111,48 +111,68 @@ export default {
   },
   methods: {
     onRefresh() {
-      this.fetchBookListen();
+      this.fetchBookListen(true);
       this.isLoading = false;
       this.$notify({ type: "success", message: "刷新成功" });
     },
     getRouterData() {
-      const bookId = parseInt(this.$route.query.id);
-      const favList = this.$store.getters.getFavList;
-      console.log('bookInfo')
-      console.log(bookId)
-      console.log(favList)
-      const favBook = getFavBookByBookId(favList, bookId);
-      console.log(favBook);
-      if (favBook === undefined) {
-        const searchList = this.$store.getters.getSearchList;
-        console.log(searchList);
-        const bookIntro = Object.assign(
-          {},
-          getSearchBookByBookId(searchList, bookId)
-        );
-        this.bookInfo.bookIntro = bookIntro;
-        this.bookInfo.bookId = bookId;
-        console.log(this.bookInfo);
-        this.fetchBookListen();
-      } else {
-        this.bookInfo = Object.assign({}, favBook);
+      const bookId = parseInt(this.$route.params.id);
+      const currentBook = this.$store.getters.getCurrentBook;
+      console.log(currentBook, bookId);
+      if (currentBook && currentBook.bookId === bookId) {
+        this.bookInfo = currentBook;
         this.bookIntroList = this.bookInfo.currentBookListen;
-
         this.loading = true;
+      } else {
+        const favList = this.$store.getters.getFavList;
+        console.log("bookInfo");
+        console.log(bookId);
+        console.log(favList);
+        const favBook = getFavBookByBookId(favList, bookId);
+        console.log(favBook);
+        if (favBook === undefined) {
+          const searchList = this.$store.getters.getSearchList;
+          console.log(searchList);
+          const bookIntro = Object.assign(
+            {},
+            getSearchBookByBookId(searchList, bookId)
+          );
+          this.bookInfo.bookIntro = bookIntro;
+          this.bookInfo.bookId = bookId;
+          console.log(this.bookInfo);
+          this.fetchBookListen();
+        } else {
+          this.bookInfo = Object.assign({}, favBook);
+          this.bookIntroList = this.bookInfo.currentBookListen;
+          this.loading = true;
+        }
       }
       this.cutChapter = parseInt(Math.ceil(this.bookIntroList.length / 50));
       this.cutChapterList = this.bookIntroList.slice(0, 50);
       this.fav = this.bookInfo.fav;
     },
     pushToMusic(item) {
+      const currentBook = this.$store.getters.getCurrentBook;
+      console.log(currentBook, this.bookInfo.bookId);
+      // 这个参数是为了控制vuex更新问题 以后再来解决了
+      let isBook = false;
+      if (
+        currentBook &&
+        currentBook.bookId &&
+        currentBook.bookId === this.bookInfo.bookId
+      ) {
+        isBook = true;
+        this.bookInfo = currentBook;
+      }
       console.log(item);
       this.bookInfo.lastChapterTitle = item.chapterTitle;
       this.bookInfo.lastChapterId = item.chapterId;
+      console.log(this.bookInfo);
       this.$store.dispatch("updateCurrentBook", this.bookInfo);
       if (this.bookInfo.fav) {
         this.$store.dispatch("updateFav", this.bookInfo);
       }
-      this.$emit("showModule");
+      this.$emit("showModule", isBook);
     },
     async fetchBookInfo() {
       const res = await bookInfo({
@@ -161,13 +181,19 @@ export default {
       });
       return res.data.data.bookData;
     },
-    async fetchBookListen() {
-      const res = await bookListen({
+    async fetchBookListen(really = false) {
+      const param = {
         bookId: this.bookInfo.bookId,
         uid: this.uid,
         sort: "asc",
         size: this.size,
-      });
+      };
+      let res;
+      if (really) {
+        res = await bookRListen(param);
+      } else {
+        res = await bookListen(param);
+      }
       this.bookIntroList = res.data.data.list;
       this.loading = true;
       this.bookInfo.bookIntro.count = this.bookIntroList.length;
@@ -190,7 +216,7 @@ export default {
     isFav() {
       this.fav = !this.fav;
       this.bookInfo.fav = this.fav;
-      console.log(this.bookInfo)
+      console.log(this.bookInfo);
       console.log(this.bookInfo.fav);
       if (this.bookInfo.fav) {
         this.bookInfo.skip_start_time = 0;

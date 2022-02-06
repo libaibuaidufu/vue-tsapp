@@ -19,6 +19,7 @@
     <book-re-head
       :title="title"
       :isReturn="isReturn"
+      @resetCache="resetCache"
       v-else-if="this.$route.name !== 'PlayMusic'"
     />
     <div
@@ -50,13 +51,17 @@
       <van-action-sheet
         v-model="isShow"
         title="跳过头尾"
+        cancel-text="确定"
+        :closeable="false"
+        @closed="cancelSkipTime"
+        @cancel="saveSkipTime"
         @select="onSelectShow"
       >
         <div class="slider">
           <div class="slider-tab">
             <p>跳过开头</p>
             <van-stepper
-              v-model="skip_start_time"
+              v-model="bookInfo.skip_start_time"
               min="0"
               max="120"
               name="跳过开头"
@@ -66,7 +71,7 @@
           <div class="slider-tab">
             <p>跳过结尾</p>
             <van-stepper
-              v-model="skip_end_time"
+              v-model="bookInfo.skip_end_time"
               min="0"
               max="120"
               name="跳过结尾："
@@ -250,6 +255,8 @@ export default {
       bookInfo: {
         lastChapterTitle: "",
         lastChapterId: 0,
+        skip_start_time: 0,
+        skip_end_time: 0,
         bookIntro: {
           bookImage: "",
           bookTitle: "",
@@ -290,16 +297,6 @@ export default {
     },
   },
   watch: {
-    skip_start_time(val) {
-      this.skip_start_time = val;
-      this.bookInfo.skip_start_time = val;
-      this.bookUpdateFavCurrent();
-    },
-    skip_end_time(val) {
-      this.skip_end_time = val;
-      this.bookInfo.skip_end_time = this.skip_end_time;
-      this.bookUpdateFavCurrent();
-    },
     url() {
       this.refresh = false;
       this.$nextTick(() => {
@@ -338,12 +335,26 @@ export default {
         });
       }
     },
-    getRouteData() {
-      const bookInfo = Object.assign({}, this.$store.getters.getCurrentBook);
+    saveSkipTime() {
+      console.log("in")
+      this.skip_start_time = this.bookInfo.skip_start_time;
+      this.skip_end_time = this.bookInfo.skip_end_time;
+      this.bookUpdateFavCurrent();
+    },
+    cancelSkipTime() {
+      this.bookInfo.skip_start_time = this.skip_start_time;
+      this.bookInfo.skip_end_time = this.skip_end_time;
+    },
+    getRouteData(isBook=false) {
+      console.log(this.bookInfo)
+      // const bookInfo = Object.assign({}, this.$store.getters.getCurrentBook);
+      const bookInfo = this.$store.getters.getCurrentBook;
+      console.log(bookInfo.lastChapterId, this.bookInfo.lastChapterId)
+      console.log(this.bookInfo)
       if (bookInfo.bookId) {
         if (
           bookInfo.bookId !== this.bookId ||
-          bookInfo.lastChapterId != this.bookInfo.lastChapterId
+          bookInfo.lastChapterId != this.bookInfo.lastChapterId || isBook
         ) {
           if (this.is_play) {
             console.log("暂停了在播放");
@@ -566,6 +577,16 @@ export default {
     onClickLeft() {
       this.show = false;
     },
+    // 清除缓冲暂停播放
+    resetCache(){
+      if(this.is_play){
+        this.playMusic()
+      }
+      // 重置data https://zhuanlan.zhihu.com/p/110978595
+      Object.assign(this.$data, this.$options.data())
+      this.tab_active = this.$route.name;
+      // this.key = this.$route.path
+    }
   },
 };
 </script>

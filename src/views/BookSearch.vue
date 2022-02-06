@@ -22,7 +22,7 @@ export default {
     pushToInfo(item) {
       this.$router.push({
         name: `BookInfo`,
-        query: {
+        params: {
           id: item.id,
           // bookIntro: item,
         },

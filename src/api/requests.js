@@ -1,5 +1,5 @@
 import axios from 'axios'
-
+import { Dialog } from 'vant';
 // create an axios instance
 const service = axios.create({
     // baseURL: settings.SERVER_URL, // url = base url + request url
@@ -42,6 +42,11 @@ export default {
                 params: param,
             }).then(res => {
                 resolve(res)
+            }).catch(() => {
+                Dialog.confirm({
+                    title: '错误',
+                    message: '加载出错',
+                })
             })
         })
     },

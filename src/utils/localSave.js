@@ -20,3 +20,8 @@ export function setFavList(favList) {
     favList = JSON.stringify(favList);
     return localStorage.setItem(favListKey, favList)
 }
+
+export function resetCache(){
+    localStorage.removeItem(currentBookKey)
+    localStorage.removeItem(favListKey)
+}

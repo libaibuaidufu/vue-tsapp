@@ -2,13 +2,13 @@
   <div class="head">
     <van-nav-bar
       :title="title"
-      right-text=""
       left-arrow
       @click-left="onClickLeft"
-      @click-right="onClickRight"
       v-if="isReturn"
     />
     <van-nav-bar
+      right-text="清除缓存"
+      @click-right="onClickRight"
       :title="title"
       v-else
     />
@@ -16,21 +16,21 @@
 </template>
 
 <script>
+import {resetCache} from '../utils/localSave'
 export default {
   name: "BookHeader",
   data() {
-    return {
-    };
+    return {};
   },
-  props:{
-      title:{
-          type:String,
-          require:true
-      },
-      isReturn:{
-        type:Boolean,
-        default:false
-      }
+  props: {
+    title: {
+      type: String,
+      require: true,
+    },
+    isReturn: {
+      type: Boolean,
+      default: false,
+    },
   },
   methods: {
     onClickLeft() {
@@ -38,7 +38,10 @@ export default {
       console.log("val");
     },
     onClickRight() {
-      console.log("取消");
+      this.$store.dispatch("updateFavList",[])
+      this.$store.dispatch("updateCurrentBook",{})
+      resetCache()
+      this.$emit("resetCache")
     },
   },
 };

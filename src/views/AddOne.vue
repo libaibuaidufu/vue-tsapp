@@ -15,23 +15,22 @@
 </template>
 
 <script>
-import {loadFavList} from '../utils/utils'
 export default {
   data() {
     return {
-      favList: [],
     };
   },
-  mounted() {
-    this.favList = this.$store.getters.getFavList;
-    console.log(this.favList)
+  computed:{
+    favList(){
+      return  this.$store.getters.getFavList;
+    }
   },
   methods: {
     pushToInfo(item) {
       console.log(item)
       this.$router.push({
         name: `BookInfo`,
-        query: {
+        params: {
           id: item.bookId
         },
       });
