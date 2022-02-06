@@ -81,16 +81,20 @@ const actions = {
         let favList = getters.getFavList();
         console.log('222', favList)
         favList.push(fav)
+        favList = favList.filter(i=>i)
+        console.log(favList)
         setFavList(favList)
         context.commit('newFavList', favList)
     },
     delFav(context, bookId) {
         let favList = getters.getFavList();
         favList.filter((item, index) => {
-            if (item.bookId === bookId) {
+            if (item&&item.bookId === bookId) {
                 delete favList[index];
             }
         });
+        favList = favList.filter(i=>i)
+        console.log(favList)
         setFavList(favList)
         context.commit('newFavList', favList)
     },
@@ -98,10 +102,12 @@ const actions = {
         setCurrentBook(fav)
         let favList = getters.getFavList();
         favList.filter((item, index) => {
-            if (item.bookId === fav.bookId) {
+            if (item&&item.bookId === fav.bookId) {
                 favList[index] = fav
             }
         });
+        favList = favList.filter(i=>i)
+        console.log(favList)
         setFavList(favList)
         context.commit('newFavList', favList)
     }

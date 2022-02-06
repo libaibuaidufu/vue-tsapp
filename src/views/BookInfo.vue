@@ -118,6 +118,9 @@ export default {
     getRouterData() {
       const bookId = parseInt(this.$route.query.id);
       const favList = this.$store.getters.getFavList;
+      console.log('bookInfo')
+      console.log(bookId)
+      console.log(favList)
       const favBook = getFavBookByBookId(favList, bookId);
       console.log(favBook);
       if (favBook === undefined) {
@@ -187,6 +190,7 @@ export default {
     isFav() {
       this.fav = !this.fav;
       this.bookInfo.fav = this.fav;
+      console.log(this.bookInfo)
       console.log(this.bookInfo.fav);
       if (this.bookInfo.fav) {
         this.bookInfo.skip_start_time = 0;

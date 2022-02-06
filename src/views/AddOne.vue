@@ -24,9 +24,11 @@ export default {
   },
   mounted() {
     this.favList = this.$store.getters.getFavList;
+    console.log(this.favList)
   },
   methods: {
     pushToInfo(item) {
+      console.log(item)
       this.$router.push({
         name: `BookInfo`,
         query: {

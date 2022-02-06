@@ -38,7 +38,7 @@ export function getFavBookByBookId(favList, bookId) {
     console.log(favList)
     favList.filter((item) => {
         console.log(item)
-        if (item.bookId === bookId) {
+        if (item&&item.bookId === bookId) {
             favBook = item
         }
     });
@@ -49,7 +49,7 @@ export function getFavBookByBookId(favList, bookId) {
 export function getSearchBookByBookId(searchList, bookId) {
     let searchBook;
     searchList.filter((item) => {
-        if (item.id === bookId) {
+        if (item&&item.id === bookId) {
             searchBook = item
         }
     });
