@@ -139,8 +139,10 @@
             <div class="music-control">
               <div class="music-icon">
                 <van-icon name="ellipsis" @click="isShow = true" />
-                <van-icon name="add-o" @click="isRate = true" />
-                <van-icon name="clock-o" @click="isChapter = true" />
+                <van-icon name="add-o" @click="isRate = true" :badge="rate_play" v-if="rate_play !==1" />
+                <van-icon name="add-o" @click="isRate = true"  v-else />
+                <van-icon name="clock-o" @click="isChapter = true" :badge="skip_chapter" v-if="skip_chapter!==0" />
+                <van-icon name="clock-o" @click="isChapter = true"  v-else />
                 <van-icon name="setting-o" @click="isList = true" />
               </div>
               <div class="music-progress">
