@@ -186,6 +186,7 @@ import BookHeader from "../components/BookHeader.vue";
 import BookReHead from "../components/BookReHead.vue";
 import { bookSearch, bookOne } from "../api/book";
 import { abc, realFormatSecond } from "../utils/utils";
+import {scanclick,saveCurrentPath} from "../utils/androidFun"
 
 export default {
   components: { BookHeader, BookFooter, BookReHead },
@@ -264,7 +265,7 @@ export default {
       refresh: false,
       bookIntroList: [],
       bookInfo: {
-        bookId:0,
+        bookId: 0,
         lastChapterTitle: "",
         lastChapterId: 0,
         skip_start_time: 0,
@@ -296,11 +297,7 @@ export default {
     },
     key() {
       this.tab_active = this.$route.name;
-      try {
-        window.androidinfo.saveCurrentPath(this.$route.name);
-      } catch (err) {
-        console.log("web运行");
-      }
+      saveCurrentPath(this.$route.name);
       return this.$route.path;
     },
     title() {
@@ -490,7 +487,7 @@ export default {
       const res = await bookOne(params);
       if (res) {
         if (res.data.status === 0) {
-          const webviewRes = this.scanclick();
+          const webviewRes = scanclick();
           if (webviewRes.status === 0) {
             ++this.request_time;
             setTimeout(this.fetchMusic, 3000);
@@ -508,21 +505,6 @@ export default {
     },
     // vue请求
     async fetchMusic() {
-      // return;
-      // const resp = await bookOne(params);
-      // console.log("jjj", resp);
-      // const res = resp.data;
-      // if (res.status === 0) {
-      //   const webviewRes = this.scanclick();
-      //   if (webviewRes.status === 0) {
-      //     this.$notify({ type: "primary", message: "请求过快，请稍后再试" });
-      //     return;
-      //   } else {
-      //     this.url = abc(webviewRes.src);
-      //   }
-      // } else {
-      //   this.url = abc(res.src);
-      // }
       const url = await this.getUrl();
       if (url) {
         this.url = url;
@@ -532,22 +514,7 @@ export default {
       }
       this.auto_load = true;
     },
-    // android方法请求
-    scanclick() {
-      const url =
-        "https://www.tingxiaoshuo.cc/pc/index/getchapterurl/bookId/" +
-        this.bookInfo.bookId +
-        "/chapterId/" +
-        this.bookInfo.lastChapterId +
-        ".html";
-      try {
-        var str = window.androidinfo.showInfoFromJs(url);
-        const res = JSON.parse(str);
-        return res;
-      } catch (error) {
-        return { status: 0 };
-      }
-    },
+
     // 拖动进度条
     onChange(value) {
       this.$refs.video.currentTime = (value / 100) * this.$refs.video.duration;
