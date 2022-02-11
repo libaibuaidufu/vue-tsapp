@@ -42,11 +42,6 @@ export default {
                 params: param,
             }).then(res => {
                 resolve(res)
-            }).catch(() => {
-                Dialog.confirm({
-                    title: '错误',
-                    message: '加载出错',
-                })
             })
         })
     },

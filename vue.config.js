@@ -1,5 +1,6 @@
 'use strict'
 const path = require('path')
+const { kill } = require('process')
 
 function resolve(dir) {
   return path.join(__dirname, dir)
@@ -23,7 +24,8 @@ module.exports = {
     devServer: {
         proxy: {  //配置跨域
             '/api': {
-                target: 'https://app.tingxiaoshuo.cc/listen/api',  //这里后台的地址模拟的;应该填写你们真实的后台接口
+                // target: 'https://app.tingxiaoshuo.cc/listen/api',  //这里后台的地址模拟的;应该填写你们真实的后台接口
+                target: 'https://ts.kaizhu.xyz/api',  //这里后台的地址模拟的;应该填写你们真实的后台接口
                 changOrigin: true,  //允许跨域
                 pathRewrite: {
                     '^/api': ''

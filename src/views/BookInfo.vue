@@ -118,28 +118,21 @@ export default {
     getRouterData() {
       const bookId = parseInt(this.$route.params.id);
       const currentBook = this.$store.getters.getCurrentBook;
-      console.log(currentBook, bookId);
       if (currentBook && currentBook.bookId === bookId) {
         this.bookInfo = currentBook;
         this.bookIntroList = this.bookInfo.currentBookListen;
         this.loading = true;
       } else {
         const favList = this.$store.getters.getFavList;
-        console.log("bookInfo");
-        console.log(bookId);
-        console.log(favList);
         const favBook = getFavBookByBookId(favList, bookId);
-        console.log(favBook);
         if (favBook === undefined) {
           const searchList = this.$store.getters.getSearchList;
-          console.log(searchList);
           const bookIntro = Object.assign(
             {},
             getSearchBookByBookId(searchList, bookId)
           );
           this.bookInfo.bookIntro = bookIntro;
           this.bookInfo.bookId = bookId;
-          console.log(this.bookInfo);
           this.fetchBookListen();
         } else {
           this.bookInfo = Object.assign({}, favBook);
@@ -153,26 +146,27 @@ export default {
     },
     pushToMusic(item) {
       const currentBook = this.$store.getters.getCurrentBook;
-      console.log(currentBook, this.bookInfo.bookId);
       // 这个参数是为了控制vuex更新问题 以后再来解决了
+      let isSame = false;
       let isBook = false;
       if (
         currentBook &&
         currentBook.bookId &&
         currentBook.bookId === this.bookInfo.bookId
       ) {
+        if(currentBook.lastChapterId === item.chapterId){
+          isSame = true
+        }
         isBook = true;
         this.bookInfo = currentBook;
       }
-      console.log(item);
       this.bookInfo.lastChapterTitle = item.chapterTitle;
       this.bookInfo.lastChapterId = item.chapterId;
-      console.log(this.bookInfo);
       this.$store.dispatch("updateCurrentBook", this.bookInfo);
       if (this.bookInfo.fav) {
         this.$store.dispatch("updateFav", this.bookInfo);
       }
-      this.$emit("showModule", isBook);
+      this.$emit("showModule", isBook,isSame);
     },
     async fetchBookInfo() {
       const res = await bookInfo({
@@ -216,13 +210,10 @@ export default {
     isFav() {
       this.fav = !this.fav;
       this.bookInfo.fav = this.fav;
-      console.log(this.bookInfo);
-      console.log(this.bookInfo.fav);
       if (this.bookInfo.fav) {
-        this.bookInfo.skip_start_time = 0;
-        this.bookInfo.skip_end_time = 0;
+        this.bookInfo.skip_start_time = this.bookInfo.skip_start_time || this.$options.data().skip_start_time;
+        this.bookInfo.skip_end_time = this.bookInfo.skip_end_time || this.$options.data().skip_end_time;
         this.$store.dispatch("addFav", this.bookInfo);
-        console.log(this.$store.getters.getFavList);
       } else {
         this.$store.dispatch("delFav", this.bookInfo.bookId);
       }
@@ -231,6 +222,11 @@ export default {
 };
 </script>
 
+<style lang="scss">
+.book-listen-list .van-grid {
+  width: 100%;
+}
+</style>
 <style lang="scss" scoped>
 .book-intro {
   padding: 0px 2.5% 0 2.5%;
@@ -291,4 +287,8 @@ export default {
     }
   }
 }
+</style>
+
+<style lang="scss" scoped>
+
 </style>
