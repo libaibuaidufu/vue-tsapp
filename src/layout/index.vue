@@ -62,6 +62,7 @@
             <p>跳过开头</p>
             <van-stepper
               v-model="bookInfo.skip_start_time"
+              default-value="0"
               min="0"
               max="120"
               name="跳过开头"
@@ -72,6 +73,7 @@
             <p>跳过结尾</p>
             <van-stepper
               v-model="bookInfo.skip_end_time"
+              default-value="0"
               min="0"
               max="120"
               name="跳过结尾："
