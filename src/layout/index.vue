@@ -41,13 +41,6 @@
       v-if="this.$route.name !== 'PlayMusic'"
     />
     <div class="music-skip">
-      <!-- <p @click="isShow = true">跳过头尾</p> -->
-      <!-- <p @click="isRate = true">播放速度X{{ rate_play }}</p> -->
-      <!-- <p @click="isChapter = true" v-if="skip_chapter === 0">
-                  定时关闭
-                </p>
-                <p @click="isChapter = true" v-else>剩余{{ skip_chapter }}集</p> -->
-      <!-- <p @click="isList = true">集数列表</p> -->
       <van-action-sheet
         v-model="isShow"
         title="跳过头尾"

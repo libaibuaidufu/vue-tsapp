@@ -2,13 +2,13 @@
   <div class="book-list">
     <div v-for="item in favList" :key="item.bookId" @click="pushToInfo(item)">
       <div>
-      <img :src="item.bookIntro.bookImage" alt="..." v-real-img="" />
-
+        <img :src="item.bookIntro.bookImage" alt="..." v-real-img="" />
       </div>
       <div class="book-info">
         <p class="book-title">书名：{{ item.bookIntro.bookTitle }}</p>
         <p class="book-desc">作者：{{ item.bookIntro.bookAnchor }}</p>
         <p class="book-desc">集数：{{ item.bookIntro.count }}</p>
+        <p class="book-desc">听到：{{ item.lastChapterTitle }}</p>
       </div>
     </div>
   </div>
@@ -17,21 +17,20 @@
 <script>
 export default {
   data() {
-    return {
-    };
+    return {};
   },
-  computed:{
-    favList(){
-      return  this.$store.getters.getFavList;
-    }
+  computed: {
+    favList() {
+      return this.$store.getters.getFavList;
+    },
   },
   methods: {
     pushToInfo(item) {
-      console.log(item)
+      console.log(item);
       this.$router.push({
         name: `BookInfo`,
         params: {
-          id: item.bookId
+          id: item.bookId,
         },
       });
     },
@@ -54,7 +53,7 @@ export default {
       height: 120px;
     }
     .book-info {
-      width: 100%;
+      width: 62%;
       display: flex;
       flex-flow: row wrap;
       p {
@@ -65,6 +64,9 @@ export default {
       }
       .book-desc {
         width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     }
   }
