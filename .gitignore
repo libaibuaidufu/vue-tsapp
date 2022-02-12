@@ -26,3 +26,7 @@ pnpm-debug.log*
 *.keystore
 
 *.bak
+
+.gradle
+tsapp
+*.zip

@@ -233,7 +233,7 @@ export default {
     getRouteData() {
       this.bookId = this.$route.params.bookId;
       this.bookInfo = Object.assign({}, this.$store.getters.getCurrentBook);
-      console.log(this.bookInfo);
+      // console.log(this.bookInfo);
       this.bookImage = this.bookInfo.bookIntro.bookImage;
       this.bookIntroList = this.bookInfo.currentBookListen;
       this.skip_start_time = this.bookInfo.skip_start_time;
@@ -242,11 +242,11 @@ export default {
       this.cutChapterList = this.bookIntroList.slice(0, 50);
     },
     musicEnd() {
-      console.log("end 播放状态自动关闭");
+      // console.log("end 播放状态自动关闭");
       this.is_play = false;
       this.is_can_play = false;
-      console.log(this.close_status, "close_status", this.skip_chapter);
-      console.log(this.$refs.video.paused);
+      // console.log(this.close_status, "close_status", this.skip_chapter);
+      // console.log(this.$refs.video.paused);
       if (this.close_status) {
         if (this.skip_chapter <= 1) {
           this.skip_chapter = 0;
@@ -259,12 +259,12 @@ export default {
       this.nextMusic();
     },
     musicCanPlay() {
-      console.log("in");
+      // // console.log("in");
       this.end_time = realFormatSecond(this.$refs.video.duration);
       this.run_time = realFormatSecond(this.$refs.video.currentTime);
       this.is_play = true;
       this.is_can_play = true;
-      console.log(this.$refs.video.paused, this.run_time, this.end_time);
+      // // console.log(this.$refs.video.paused, this.run_time, this.end_time);
       if (this.$refs.video.paused) {
         this.playMusic();
       }
@@ -344,11 +344,11 @@ export default {
       }
     },
     nextMusic() {
-      console.log("下一首");
+      // // console.log("下一首");
       let next_book = false;
       let nextChapter = {};
-      console.log(this.bookIntroList);
-      console.log(this.bookInfo.lastChapterId);
+      // // console.log(this.bookIntroList);
+      // // console.log(this.bookInfo.lastChapterId);
       this.bookIntroList.filter((item, index) => {
         if (item.chapterId === this.bookInfo.lastChapterId) {
           const nextChapterIndex = index + 1;
@@ -371,11 +371,11 @@ export default {
       }
     },
     lastMusic() {
-      console.log("上一首");
+      // // console.log("上一首");
       let last_book = false;
       let lastChapter = {};
-      console.log(this.bookIntroList);
-      console.log(this.bookInfo.lastChapterId);
+      // // console.log(this.bookIntroList);
+      // // console.log(this.bookInfo.lastChapterId);
       this.bookIntroList.filter((item, index) => {
         if (item.chapterId === this.bookInfo.lastChapterId) {
           const lastChapterIndex = index - 1;
@@ -404,7 +404,7 @@ export default {
       this.isRate = false;
       this.rate_play = item.value;
       this.$refs.video.playbackRate = this.rate_play;
-      console.log(item);
+      // // console.log(item);
     },
     onSelectChapter(item) {
       this.isChapter = false;
@@ -414,17 +414,17 @@ export default {
         this.close_status = true;
       }
       this.skip_chapter = item.value;
-      console.log(item);
+      // // console.log(item);
     },
     onSelectShow(item) {
       this.isShow = false;
     },
     onSelectChapterOptions(item) {
-      console.log("jj");
+      // // console.log("jj");
       this.isList = false;
     },
     playClickChapter(item) {
-      console.log(item);
+      // // console.log(item);
       this.bookInfo.lastChapterTitle = item.chapterTitle;
       this.bookInfo.lastChapterId = item.chapterId;
       this.$store.dispatch("updateFav", this.bookInfo);

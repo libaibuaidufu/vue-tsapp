@@ -4,7 +4,7 @@ export function abc(u) {
     for (var i = 0, n = tArr.length; i < n; i++) {
         str += String.fromCharCode(tArr[i]);
     }
-    console.log(str)
+    // console.log(str)
     return str;
 }
 
@@ -35,14 +35,14 @@ export function realFormatSecond(second) {
 
 export function getFavBookByBookId(favList, bookId) {
     let favBook ;
-    console.log(favList)
+    // console.log(favList)
     favList.filter((item) => {
-        console.log(item)
+        // console.log(item)
         if (item&&item.bookId === bookId) {
             favBook = item
         }
     });
-    console.log('fav',favBook)
+    // console.log('fav',favBook)
     return favBook
 
 }
@@ -53,7 +53,7 @@ export function getSearchBookByBookId(searchList, bookId) {
             searchBook = item
         }
     });
-    console.log('search',searchBook)
+    // console.log('search',searchBook)
     return searchBook
 }
 

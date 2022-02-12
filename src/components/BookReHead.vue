@@ -35,7 +35,7 @@ export default {
   methods: {
     onClickLeft() {
       this.$router.go(-1);
-      console.log("val");
+      // console.log("val");
     },
     onClickRight() {
       this.$store.dispatch("updateFavList",[])

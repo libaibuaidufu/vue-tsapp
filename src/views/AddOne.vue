@@ -26,7 +26,7 @@ export default {
   },
   methods: {
     pushToInfo(item) {
-      console.log(item);
+      // console.log(item);
       this.$router.push({
         name: `BookInfo`,
         params: {

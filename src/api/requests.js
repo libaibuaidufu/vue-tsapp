@@ -16,7 +16,7 @@ service.interceptors.request.use(
         return request
     },
     error => {
-        console.log(error)
+        // // // console.log(error)
         return Promise.reject(error)
     }
 )
@@ -24,7 +24,7 @@ service.interceptors.request.use(
 //http-响应拦截
 service.interceptors.response.use(
     response => {
-        console.log(response)
+        // // // console.log(response)
         return response
     },
     error => {
@@ -42,7 +42,7 @@ export default {
                 params: param,
             }).then(res => {
                 resolve(res)
-            })
+            }).catch((error)=>{resolve({data:{"status":999999,"message":"fuck"}})})
         })
     },
     post(url, param) {//post请求
@@ -83,7 +83,7 @@ export default {
             let formData = new FormData();
             // formData.append('name',name)
             formData.append('file', data)
-            console.log('formData:', formData.get('file'))
+            // // console.log('formData:', formData.get('file'))
             axios({
                 method: 'post',
                 url,

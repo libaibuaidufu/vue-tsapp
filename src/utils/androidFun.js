@@ -11,6 +11,7 @@ export function scanclick(bookId, lastChapterId) {
         const res = JSON.parse(str);
         return res;
     } catch (error) {
+        // console.log("web运行")
         return { status: 0 };
     }
 }
@@ -19,6 +20,6 @@ export function saveCurrentPath(name) {
     try {
         window.androidinfo.saveCurrentPath(name);
     } catch (error) {
-        console.log("web运行")
+        // console.log("web运行")
     }
 }

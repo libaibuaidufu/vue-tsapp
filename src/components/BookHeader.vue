@@ -25,7 +25,7 @@ export default {
       this.$emit("on-search", val);
     },
     onCancel() {
-      console.log("取消")
+      // console.log("取消")
     },
   },
 };

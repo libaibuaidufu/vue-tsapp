@@ -37,7 +37,7 @@
     <book-footer
       :active="tab_active"
       @toggleClick="toggleClick"
-      @changeShow="getRouteData"
+      @changeShow="getRouteData(false,true )"
       v-if="this.$route.name !== 'PlayMusic'"
     />
     <div class="music-skip">
@@ -181,7 +181,7 @@ import BookHeader from "../components/BookHeader.vue";
 import BookReHead from "../components/BookReHead.vue";
 import { bookSearch, bookOne } from "../api/book";
 import { abc, realFormatSecond } from "../utils/utils";
-import {scanclick,saveCurrentPath} from "../utils/androidFun"
+import { scanclick, saveCurrentPath } from "../utils/androidFun";
 
 export default {
   components: { BookHeader, BookFooter, BookReHead },
@@ -263,6 +263,7 @@ export default {
         bookId: 0,
         lastChapterTitle: "",
         lastChapterId: 0,
+        lastChapterTime: 0,
         skip_start_time: 0,
         skip_end_time: 0,
         rate_play: 1,
@@ -276,6 +277,7 @@ export default {
       close_status: false, // 控制定时播放 是否启用
       close_status_no_play: false, // 控制定时播放结束后 不自动播放,非定时自动播放
       is_can_play: false, // 控制是否加载完成
+      skip_to_last_time: false, // 跳转到上次听到的位置
       cutChapter: 0,
       cutChapterList: [],
       request_time: 0,
@@ -360,7 +362,7 @@ export default {
     },
     getRouteData(isBook = false, isSame = false) {
       const bookInfo = this.$store.getters.getCurrentBook;
-      if (isSame) {
+      if (isSame && this.bookInfo.bookId) {
         this.show = true;
         if (this.is_can_play && this.$refs.video.paused) {
           this.playMusic();
@@ -373,7 +375,7 @@ export default {
             isBook
           ) {
             if (this.is_play) {
-              console.log("暂停了在播放");
+              // console.log("暂停了在播放");
               this.playMusic();
             }
             this.show = true;
@@ -399,6 +401,9 @@ export default {
               currentCutChapter * 50 - 50,
               50 * currentCutChapter
             );
+            if (isSame) {
+              this.skip_to_last_time = true ;
+            }
             this.fetchMusic();
           } else {
             this.show = true;
@@ -412,7 +417,7 @@ export default {
           parseInt(this.$refs.video.duration)) *
         100;
       this.run_time = realFormatSecond(this.$refs.video.currentTime);
-      console.log("end 播放状态自动关闭");
+      // console.log("end 播放状态自动关闭");
       this.is_play = false;
       this.is_can_play = false;
       if (this.close_status) {
@@ -427,15 +432,21 @@ export default {
       this.nextMusic();
     },
     musicCanPlay() {
-      console.log("我只是这样");
+      // console.log("我只是这样");
+      if (this.skip_to_last_time) {
+        this.$refs.video.currentTime = this.bookInfo.lastChapterTime;
+        this.skip_to_last_time = false;
+      }
       this.percentage =
         (parseInt(this.$refs.video.currentTime) /
           parseInt(this.$refs.video.duration)) *
         100;
+
       this.end_time = realFormatSecond(this.$refs.video.duration);
       this.run_time = realFormatSecond(this.$refs.video.currentTime);
       this.is_can_play = true;
       this.$refs.video.playbackRate = this.rate_play;
+
       if (!this.close_status_no_play) {
         if (this.$refs.video.paused) {
           this.playMusic();
@@ -445,6 +456,8 @@ export default {
       }
     },
     onTimeupdate(res) {
+      this.bookInfo.lastChapterTime = this.$refs.video.currentTime
+      this.bookUpdateFavCurrent()
       if (this.$refs.video.currentTime < this.skip_start_time) {
         this.$refs.video.currentTime = this.skip_start_time;
       }
@@ -469,7 +482,7 @@ export default {
         chapterId: this.bookInfo.lastChapterId,
         uid: 0,
       };
-      console.log(this.request_time);
+      // console.log(this.request_time);
       let url = "";
       if (this.request_time >= 3) {
         this.$dialog.confirm({
@@ -481,7 +494,7 @@ export default {
       }
       const res = await bookOne(params);
       if (res) {
-        if (res.data.status === 0) {
+        if (res.data.status === 0 || res.data.status === 999999) {
           const webviewRes = scanclick();
           if (webviewRes.status === 0) {
             ++this.request_time;
@@ -492,9 +505,6 @@ export default {
         } else {
           url = abc(res.data.src);
         }
-      } else {
-        ++this.request_time;
-        setTimeout(this.fetchMusic, 3000);
       }
       return url;
     },
@@ -534,7 +544,7 @@ export default {
     },
     // 上一首
     nextMusic() {
-      console.log("下一首");
+      // console.log("下一首");
       // let next_book = false;
       let nextChapter = {};
       ++this.bookInfo.chapterIndex;
@@ -572,7 +582,7 @@ export default {
     },
     // 下一首
     lastMusic() {
-      console.log("上一首");
+      // console.log("上一首");
       let Chapter = {};
       --this.bookInfo.chapterIndex;
       if (
