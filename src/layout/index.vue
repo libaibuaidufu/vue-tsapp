@@ -37,7 +37,7 @@
     <book-footer
       :active="tab_active"
       @toggleClick="toggleClick"
-      @changeShow="getRouteData(false,true )"
+      @changeShow="getRouteData(false, true)"
       v-if="this.$route.name !== 'PlayMusic'"
     />
     <div class="music-skip">
@@ -108,6 +108,36 @@
             @click="playClickChapter(item)"
           />
         </van-list>
+      </van-action-sheet>
+
+      <van-action-sheet
+        v-model="isSettings"
+        title="设置"
+        @select="onSettingsShow"
+      >
+        <div class="settings">
+          <van-cell-group inset>
+            <van-field name="switch" label="连接">
+              <template #input>
+                <van-switch
+                  v-model="settings_option.is_rellay_link"
+                  size="20"
+                />
+              </template>
+            </van-field>
+            <van-field label="缓存">
+              <template #input>
+                <van-button
+                  plain
+                  type="primary"
+                  @click="onClickRight"
+                  size="small"
+                  >清除</van-button
+                >
+              </template>
+            </van-field>
+          </van-cell-group>
+        </div>
       </van-action-sheet>
     </div>
     <van-overlay :show="show">
@@ -182,6 +212,7 @@ import BookReHead from "../components/BookReHead.vue";
 import { bookSearch, bookOne } from "../api/book";
 import { abc, realFormatSecond } from "../utils/utils";
 import { scanclick, saveCurrentPath } from "../utils/androidFun";
+import { resetCache } from "../utils/localSave";
 
 export default {
   components: { BookHeader, BookFooter, BookReHead },
@@ -284,6 +315,14 @@ export default {
     };
   },
   computed: {
+    chapterTimeList: {
+      get() {
+        return this.$store.getters.getBookChapterRunTime;
+      },
+      set(val) {
+        this.$store.dispatch("updateBookChapterRunTime", this.chapterTimeList);
+      },
+    },
     show: {
       get() {
         return this.$store.getters.getIsShow;
@@ -303,6 +342,24 @@ export default {
     isReturn() {
       return this.$route.meta.isReturn;
     },
+    isSettings: {
+      get() {
+        return this.$store.getters.getIsSettings;
+      },
+      set(val) {
+        this.$store.dispatch("updateIsSettings", val);
+      },
+    },
+    settings_option: {
+      get() {
+        console.log(this.$store.getters.getSettings);
+        return this.$store.getters.getSettings;
+      },
+      set(val) {
+        console.log("jj", val);
+        this.$store.dispatch("updateSettings", val);
+      },
+    },
     is_play: {
       get() {
         // vuex 控制首页播放暂停图标 变化
@@ -314,6 +371,22 @@ export default {
     },
   },
   watch: {
+    settings_option: {
+      handler(newName, oldName) {
+        console.log(newName, oldName);
+        this.settings_option = newName;
+      },
+      deep: true,
+    },
+    chapterTimeList: {
+      handler(newName, oldName) {
+        this.chapterTimeList = newName;
+      },
+      deep: true,
+    },
+    isSettings(val) {
+      this.isSettings = val;
+    },
     url() {
       this.refresh = false;
       this.$nextTick(() => {
@@ -334,6 +407,7 @@ export default {
       }
       this.$store.dispatch("updateCurrentBook", this.bookInfo);
     },
+    addChapterTimeList() {},
     async bookSearch(val) {
       this.keyword = val;
       const params = {
@@ -378,6 +452,7 @@ export default {
               // console.log("暂停了在播放");
               this.playMusic();
             }
+            this.is_can_play = false;
             this.show = true;
             this.bookInfo = bookInfo;
             this.bookIntroList = this.bookInfo.currentBookListen;
@@ -401,9 +476,9 @@ export default {
               currentCutChapter * 50 - 50,
               50 * currentCutChapter
             );
-            if (isSame) {
-              this.skip_to_last_time = true ;
-            }
+            // if (isSame) {
+            //   this.skip_to_last_time = true;
+            // }
             this.fetchMusic();
           } else {
             this.show = true;
@@ -432,9 +507,21 @@ export default {
       this.nextMusic();
     },
     musicCanPlay() {
-      // console.log("我只是这样");
+      console.log("我只是这样");
       if (this.skip_to_last_time) {
-        this.$refs.video.currentTime = this.bookInfo.lastChapterTime;
+        let lastChapterTime = 0;
+        console.log(this.chapterTimeList);
+        this.chapterTimeList.filter((item, index) => {
+          if (
+            item.bookId === this.bookInfo.bookId &&
+            item.chapterId === this.bookInfo.lastChapterId
+          ) {
+            lastChapterTime = this.chapterTimeList[index].lastChapterTime;
+          }
+        });
+        console.log(lastChapterTime);
+        // this.$refs.video.currentTime = this.bookInfo.lastChapterTime;
+        this.$refs.video.currentTime = lastChapterTime;
         this.skip_to_last_time = false;
       }
       this.percentage =
@@ -456,25 +543,44 @@ export default {
       }
     },
     onTimeupdate(res) {
-      this.bookInfo.lastChapterTime = this.$refs.video.currentTime
-      this.bookUpdateFavCurrent()
-      if (this.$refs.video.currentTime < this.skip_start_time) {
-        this.$refs.video.currentTime = this.skip_start_time;
+      if (this.is_can_play) {
+        // this.bookInfo.lastChapterTime = this.$refs.video.currentTime;
+        // this.bookUpdateFavCurrent();
+        this.chapterTimeList.filter((item, index) => {
+          if (
+            item.bookId === this.bookInfo.bookId &&
+            item.chapterId === this.bookInfo.lastChapterId
+          ) {
+            this.chapterTimeList[index].lastChapterTime =
+              this.$refs.video.currentTime;
+          }
+        });
+        if (this.$refs.video.currentTime < this.skip_start_time) {
+          this.$refs.video.currentTime = this.skip_start_time;
+        }
+        if (
+          this.auto_load &&
+          this.$refs.video.currentTime + this.skip_end_time >
+            this.$refs.video.duration
+        ) {
+          this.auto_load = false;
+          this.$refs.video.currentTime = this.$refs.video.duration;
+          this.chapterTimeList.filter((item, index) => {
+            if (
+              item.bookId === this.bookInfo.bookId &&
+              item.chapterId === this.bookInfo.lastChapterId
+            ) {
+              delete this.chapterTimeList[index];
+            }
+          });
+          return;
+        }
+        this.percentage =
+          (parseInt(this.$refs.video.currentTime) /
+            parseInt(this.$refs.video.duration)) *
+          100;
+        this.run_time = realFormatSecond(this.$refs.video.currentTime);
       }
-      if (
-        this.auto_load &&
-        this.$refs.video.currentTime + this.skip_end_time >
-          this.$refs.video.duration
-      ) {
-        this.auto_load = false;
-        this.$refs.video.currentTime = this.$refs.video.duration;
-        return;
-      }
-      this.percentage =
-        (parseInt(this.$refs.video.currentTime) /
-          parseInt(this.$refs.video.duration)) *
-        100;
-      this.run_time = realFormatSecond(this.$refs.video.currentTime);
     },
     async getUrl() {
       let params = {
@@ -492,24 +598,65 @@ export default {
         this.request_time = 0;
         return url;
       }
-      const res = await bookOne(params);
-      if (res) {
-        if (res.data.status === 0 || res.data.status === 999999) {
-          const webviewRes = scanclick();
-          if (webviewRes.status === 0) {
-            ++this.request_time;
-            setTimeout(this.fetchMusic, 3000);
-          } else {
-            url = abc(webviewRes.src);
-          }
+      console.log(this.settings_option.is_rellay_link);
+      if (this.settings_option.is_rellay_link) {
+        const webviewRes = scanclick(this.bookInfo.bookId,this.bookInfo.lastChapterId);
+        if (webviewRes.status === 0) {
+          this.$dialog.confirm({
+            title: "错误",
+            message: "真是连接加载出错:" + JSON.stringify(webviewRes),
+          });
+          // ++this.request_time;
+          // setTimeout(this.fetchMusic, 3000);
         } else {
-          url = abc(res.data.src);
+          url = abc(webviewRes.src);
+        }
+      } else {
+        const res = await bookOne(params);
+        if (res) {
+          if (res.data.status === 0 || res.data.status === 999999) {
+            this.$dialog.confirm({
+              title: "错误",
+              message: "缓存加载出错:" + JSON.stringify(res.data),
+            });
+          } else {
+            url = abc(res.data.src);
+          }
         }
       }
       return url;
     },
     // vue请求
     async fetchMusic() {
+      if (this.$refs.video && !this.$refs.video.paused) {
+        this.is_play = false;
+        this.$refs.video.pause();
+      }
+      this.skip_to_last_time = true;
+      let addChapterTimeList = false;
+      if (this.chapterTimeList.length === 0) {
+        addChapterTimeList = true;
+      } else {
+        addChapterTimeList = true;
+        this.chapterTimeList.filter((item, index) => {
+          console.log(item, this.bookInfo, index);
+          if (
+            item.bookId === this.bookInfo.bookId &&
+            item.chapterId === this.bookInfo.lastChapterId
+          ) {
+            addChapterTimeList = false;
+          }
+        });
+      }
+      if (addChapterTimeList) {
+        this.chapterTimeList.push({
+          bookId: this.bookInfo.bookId,
+          chapterId: this.bookInfo.lastChapterId,
+          lastChapterTime: 0,
+        });
+        console.log(this.chapterTimeList);
+      }
+
       const url = await this.getUrl();
       if (url) {
         this.url = url;
@@ -544,8 +691,7 @@ export default {
     },
     // 上一首
     nextMusic() {
-      // console.log("下一首");
-      // let next_book = false;
+      this.is_can_play = false;
       let nextChapter = {};
       ++this.bookInfo.chapterIndex;
       if (this.bookInfo.chapterIndex < this.bookIntroList.length) {
@@ -558,31 +704,10 @@ export default {
         --this.bookInfo.chapterIndex;
         this.$notify({ type: "primary", message: "没有更多了！" });
       }
-
-      // this.bookIntroList.filter((item, index) => {
-      //   if (item.chapterId === this.bookInfo.lastChapterId) {
-      //     const nextChapterIndex = index + 1;
-      //     if (
-      //       0 < nextChapterIndex &&
-      //       nextChapterIndex < this.bookInfo.currentBookListen.length
-      //     ) {
-      //       nextChapter = this.bookIntroList[nextChapterIndex];
-      //       next_book = true;
-      //     }
-      //   }
-      // });
-      // if (next_book) {
-      //   this.bookInfo.lastChapterTitle = nextChapter.chapterTitle;
-      //   this.bookInfo.lastChapterId = nextChapter.chapterId;
-      //   this.bookUpdateFavCurrent();
-      //   this.fetchMusic();
-      // } else {
-      //   this.$notify({ type: "primary", message: "没有更多了！" });
-      // }
     },
     // 下一首
     lastMusic() {
-      // console.log("上一首");
+      this.is_can_play = false;
       let Chapter = {};
       --this.bookInfo.chapterIndex;
       if (
@@ -598,32 +723,10 @@ export default {
         ++this.bookInfo.chapterIndex;
         this.$notify({ type: "primary", message: "已经到头了！" });
       }
-
-      // let last_book = false;
-      // let lastChapter = {};
-      // this.bookIntroList.filter((item, index) => {
-      //   if (item.chapterId === this.bookInfo.lastChapterId) {
-      //     const lastChapterIndex = index - 1;
-      //     if (
-      //       0 < lastChapterIndex &&
-      //       lastChapterIndex < this.bookInfo.currentBookListen.length
-      //     ) {
-      //       lastChapter = this.bookIntroList[lastChapterIndex];
-      //       last_book = true;
-      //     }
-      //   }
-      // });
-      // if (last_book) {
-      //   this.bookInfo.lastChapterTitle = lastChapter.chapterTitle;
-      //   this.bookInfo.lastChapterId = lastChapter.chapterId;
-      //   this.bookUpdateFavCurrent();
-      //   this.fetchMusic();
-      // } else {
-      //   this.$notify({ type: "primary", message: "已经到头了！" });
-      // }
     },
     // 切歌
     playClickChapter(item) {
+      this.is_can_play = false;
       this.bookInfo.lastChapterTitle = item.chapterTitle;
       this.bookInfo.lastChapterId = item.chapterId;
       this.bookInfo.chapterIndex = this.bookIntroList.findIndex(
@@ -678,6 +781,7 @@ export default {
     onSelectShow(item) {
       this.isShow = false;
     },
+
     // 展示集数列表
     onSelectChapterOptions(item) {
       this.isList = false;
@@ -685,6 +789,9 @@ export default {
     // 不显示模态
     onClickLeft() {
       this.show = false;
+    },
+    onSettingsShow() {
+      this.isSettings = false;
     },
     // 清除缓冲暂停播放
     resetCache() {
@@ -695,6 +802,13 @@ export default {
       Object.assign(this.$data, this.$options.data());
       this.tab_active = this.$route.name;
       // this.key = this.$route.path
+    },
+    onClickRight() {
+      this.$store.dispatch("updateFavList", []);
+      this.$store.dispatch("updateCurrentBook", {});
+      resetCache();
+      this.resetCache();
+      // this.$emit("resetCache");
     },
   },
 };
@@ -888,6 +1002,13 @@ $foot-height: 50px;
       margin-left: 5%;
     }
   }
+}
+.settings {
+  height: 120px;
+  width: 100%;
+  display: flex;
+  flex-flow: row wrap;
+  align-items: center;
 }
 </style>
 

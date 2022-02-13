@@ -7,7 +7,7 @@
       v-if="isReturn"
     />
     <van-nav-bar
-      right-text="清除缓存"
+      right-text="设置"
       @click-right="onClickRight"
       :title="title"
       v-else
@@ -16,7 +16,6 @@
 </template>
 
 <script>
-import {resetCache} from '../utils/localSave'
 export default {
   name: "BookHeader",
   data() {
@@ -38,10 +37,11 @@ export default {
       // console.log("val");
     },
     onClickRight() {
-      this.$store.dispatch("updateFavList",[])
-      this.$store.dispatch("updateCurrentBook",{})
-      resetCache()
-      this.$emit("resetCache")
+        this.$store.dispatch("updateIsSettings", true);
+      // this.$store.dispatch("updateFavList",[])
+      // this.$store.dispatch("updateCurrentBook",{})
+      // resetCache()
+      // this.$emit("resetCache")
     },
   },
 };
