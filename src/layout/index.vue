@@ -657,7 +657,6 @@ export default {
           lastChapterTime: 0,
         });
       }
-
       const url = await this.getUrl();
       if (url) {
         this.url = url;
@@ -693,7 +692,7 @@ export default {
         });
       }
     },
-    // 上一首
+    // 下一首
     nextMusic() {
       this.is_can_play = false;
       let nextChapter = {};
@@ -709,7 +708,7 @@ export default {
         this.$notify({ type: "primary", message: "没有更多了！" });
       }
     },
-    // 下一首
+    // 上一首
     lastMusic() {
       this.is_can_play = false;
       let Chapter = {};
