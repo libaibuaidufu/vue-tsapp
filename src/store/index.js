@@ -100,25 +100,20 @@ const actions = {
         context.commit('changeIsShow', isShow)
     },
     updateFavList(context, favList) {
-        // console.log("updateFavList",favList)
         setFavList(favList)
         context.commit('newFavList', favList)
     },
     setSearchList(context, searchList) {
-        // console.log("setSearchList",searchList)
         context.commit('newSearchList', searchList)
     },
     updateCurrentBook(context, currentBook) {
-        // console.log("updateCurrentBook",currentBook)
         setCurrentBook(currentBook)
         context.commit('newCurrentBook', currentBook)
     },
     addFav(context, fav) {
         let favList = getters.getFavList();
-        // console.log('222', favList)
         favList.push(fav)
         favList = favList.filter(i => i)
-        // console.log("addFav",favList)
         setFavList(favList)
         context.commit('newFavList', favList)
     },
@@ -130,7 +125,6 @@ const actions = {
             }
         });
         favList = favList.filter(i => i)
-        // console.log("delFav",favList)
         setFavList(favList)
         context.commit('newFavList', favList)
     },
@@ -143,7 +137,6 @@ const actions = {
             }
         });
         favList = favList.filter(i => i)
-        // console.log("updateFav",favList)
         setFavList(favList)
         context.commit('newFavList', favList)
     },
