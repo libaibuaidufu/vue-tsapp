@@ -312,6 +312,7 @@ export default {
       cutChapter: 0,
       cutChapterList: [],
       request_time: 0,
+      changeTime: false,
     };
   },
   computed: {
@@ -320,7 +321,7 @@ export default {
         return this.$store.getters.getBookChapterRunTime;
       },
       set(val) {
-        this.$store.dispatch("updateBookChapterRunTime", this.chapterTimeList);
+        this.$store.dispatch("updateBookChapterRunTime", val);
       },
     },
     show: {
@@ -352,11 +353,9 @@ export default {
     },
     settings_option: {
       get() {
-        console.log(this.$store.getters.getSettings);
         return this.$store.getters.getSettings;
       },
       set(val) {
-        console.log("jj", val);
         this.$store.dispatch("updateSettings", val);
       },
     },
@@ -373,7 +372,6 @@ export default {
   watch: {
     settings_option: {
       handler(newName, oldName) {
-        console.log(newName, oldName);
         this.settings_option = newName;
       },
       deep: true,
@@ -449,7 +447,7 @@ export default {
             isBook
           ) {
             if (this.is_play) {
-              // console.log("暂停了在播放");
+              console.log("暂停了再播放");
               this.playMusic();
             }
             this.is_can_play = false;
@@ -476,9 +474,6 @@ export default {
               currentCutChapter * 50 - 50,
               50 * currentCutChapter
             );
-            // if (isSame) {
-            //   this.skip_to_last_time = true;
-            // }
             this.fetchMusic();
           } else {
             this.show = true;
@@ -492,7 +487,7 @@ export default {
           parseInt(this.$refs.video.duration)) *
         100;
       this.run_time = realFormatSecond(this.$refs.video.currentTime);
-      // console.log("end 播放状态自动关闭");
+      console.log("end 播放状态自动关闭");
       this.is_play = false;
       this.is_can_play = false;
       if (this.close_status) {
@@ -508,44 +503,45 @@ export default {
     },
     musicCanPlay() {
       console.log("我只是这样");
-      if (this.skip_to_last_time) {
-        let lastChapterTime = 0;
-        console.log(this.chapterTimeList);
-        this.chapterTimeList.filter((item, index) => {
-          if (
-            item.bookId === this.bookInfo.bookId &&
-            item.chapterId === this.bookInfo.lastChapterId
-          ) {
-            lastChapterTime = this.chapterTimeList[index].lastChapterTime;
+
+      if (!this.changeTime) {
+        if (this.skip_to_last_time) {
+          let lastChapterTime = 0.01;
+          this.chapterTimeList.filter((item, index) => {
+            if (
+              item.bookId === this.bookInfo.bookId &&
+              item.chapterId === this.bookInfo.lastChapterId
+            ) {
+              lastChapterTime = this.chapterTimeList[index].lastChapterTime;
+            }
+          });
+          this.onChnageTime(lastChapterTime);
+          this.skip_to_last_time = false;
+        }
+        this.percentage =
+          (parseInt(this.$refs.video.currentTime) /
+            parseInt(this.$refs.video.duration)) *
+          100;
+        this.end_time = realFormatSecond(this.$refs.video.duration);
+        this.run_time = realFormatSecond(this.$refs.video.currentTime);
+        this.$refs.video.playbackRate = this.rate_play;
+        this.is_can_play = true;
+        if (!this.close_status_no_play) {
+          if (this.$refs.video.paused) {
+            this.playMusic();
           }
-        });
-        console.log(lastChapterTime);
-        // this.$refs.video.currentTime = this.bookInfo.lastChapterTime;
-        this.$refs.video.currentTime = lastChapterTime;
-        this.skip_to_last_time = false;
-      }
-      this.percentage =
-        (parseInt(this.$refs.video.currentTime) /
-          parseInt(this.$refs.video.duration)) *
-        100;
-
-      this.end_time = realFormatSecond(this.$refs.video.duration);
-      this.run_time = realFormatSecond(this.$refs.video.currentTime);
-      this.is_can_play = true;
-      this.$refs.video.playbackRate = this.rate_play;
-
-      if (!this.close_status_no_play) {
-        if (this.$refs.video.paused) {
-          this.playMusic();
+        } else {
+          if (!this.$refs.video.paused) {
+            this.playMusic();
+          }
+          this.close_status_no_play = false;
         }
       } else {
-        this.close_status_no_play = false;
+        this.changeTime = false;
       }
     },
     onTimeupdate(res) {
       if (this.is_can_play) {
-        // this.bookInfo.lastChapterTime = this.$refs.video.currentTime;
-        // this.bookUpdateFavCurrent();
         this.chapterTimeList.filter((item, index) => {
           if (
             item.bookId === this.bookInfo.bookId &&
@@ -556,15 +552,15 @@ export default {
           }
         });
         if (this.$refs.video.currentTime < this.skip_start_time) {
-          this.$refs.video.currentTime = this.skip_start_time;
+          this.onChnageTime(this.skip_start_time);
         }
         if (
           this.auto_load &&
-          this.$refs.video.currentTime + this.skip_end_time >
+          this.$refs.video.currentTime + this.skip_end_time >=
             this.$refs.video.duration
         ) {
           this.auto_load = false;
-          this.$refs.video.currentTime = this.$refs.video.duration;
+          this.onChnageTime(this.$refs.video.duration);
           this.chapterTimeList.filter((item, index) => {
             if (
               item.bookId === this.bookInfo.bookId &&
@@ -573,6 +569,7 @@ export default {
               delete this.chapterTimeList[index];
             }
           });
+          this.chapterTimeList = this.chapterTimeList.filter((n) => n);
           return;
         }
         this.percentage =
@@ -588,37 +585,40 @@ export default {
         chapterId: this.bookInfo.lastChapterId,
         uid: 0,
       };
-      // console.log(this.request_time);
       let url = "";
-      if (this.request_time >= 3) {
+      if (this.request_time >= 2) {
         this.$dialog.confirm({
           title: "错误",
-          message: "加载出错",
+          message: "加载出错,这是非本地请求出错三次了",
         });
         this.request_time = 0;
         return url;
       }
-      console.log(this.settings_option.is_rellay_link);
+      console.log("启动真是连接", this.settings_option.is_rellay_link);
       if (this.settings_option.is_rellay_link) {
-        const webviewRes = scanclick(this.bookInfo.bookId,this.bookInfo.lastChapterId);
+        const webviewRes = scanclick(
+          this.bookInfo.bookId,
+          this.bookInfo.lastChapterId
+        );
         if (webviewRes.status === 0) {
           this.$dialog.confirm({
             title: "错误",
             message: "真是连接加载出错:" + JSON.stringify(webviewRes),
           });
-          // ++this.request_time;
-          // setTimeout(this.fetchMusic, 3000);
         } else {
           url = abc(webviewRes.src);
         }
       } else {
         const res = await bookOne(params);
         if (res) {
-          if (res.data.status === 0 || res.data.status === 999999) {
+          if (res.data.status === 0) {
             this.$dialog.confirm({
               title: "错误",
               message: "缓存加载出错:" + JSON.stringify(res.data),
             });
+          } else if (res.data.status === 999999) {
+            ++this.request_time;
+            setTimeout(this.fetchMusic, 3000);
           } else {
             url = abc(res.data.src);
           }
@@ -639,7 +639,6 @@ export default {
       } else {
         addChapterTimeList = true;
         this.chapterTimeList.filter((item, index) => {
-          console.log(item, this.bookInfo, index);
           if (
             item.bookId === this.bookInfo.bookId &&
             item.chapterId === this.bookInfo.lastChapterId
@@ -654,7 +653,6 @@ export default {
           chapterId: this.bookInfo.lastChapterId,
           lastChapterTime: 0,
         });
-        console.log(this.chapterTimeList);
       }
 
       const url = await this.getUrl();
@@ -666,10 +664,13 @@ export default {
       }
       this.auto_load = true;
     },
-
+    onChnageTime(value) {
+      this.changeTime = true;
+      this.$refs.video.currentTime = value;
+    },
     // 拖动进度条
     onChange(value) {
-      this.$refs.video.currentTime = (value / 100) * this.$refs.video.duration;
+      this.onChnageTime((value / 100) * this.$refs.video.duration);
     },
     // 播放暂停
     playMusic() {
@@ -757,7 +758,8 @@ export default {
     },
     // 快进
     addTime(value) {
-      this.$refs.video.currentTime += value;
+      value = this.$refs.video.currentTime + value;
+      this.onChnageTime(value);
     },
     // 展示选择播放速度
     onSelectRate(item) {

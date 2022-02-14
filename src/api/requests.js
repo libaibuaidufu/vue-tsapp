@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { Dialog } from 'vant';
 // create an axios instance
 const service = axios.create({
     // baseURL: settings.SERVER_URL, // url = base url + request url
