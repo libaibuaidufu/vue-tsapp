@@ -605,6 +605,9 @@ export default {
             title: "错误",
             message: "真是连接加载出错:" + JSON.stringify(webviewRes),
           });
+        } else if (webviewRes.status === 999999) {
+          ++this.request_time;
+          setTimeout(this.fetchMusic, 3000);
         } else {
           url = abc(webviewRes.src);
         }
