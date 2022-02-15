@@ -116,27 +116,36 @@
         @select="onSettingsShow"
       >
         <div class="settings">
-          <van-cell-group inset>
-            <van-field name="switch" label="连接">
-              <template #input>
-                <van-switch
-                  v-model="settings_option.is_rellay_link"
-                  size="20"
-                />
-              </template>
-            </van-field>
-            <van-field label="缓存">
-              <template #input>
-                <van-button
-                  plain
-                  type="primary"
-                  @click="onClickRight"
-                  size="small"
-                  >清除</van-button
-                >
-              </template>
-            </van-field>
-          </van-cell-group>
+          <van-field
+            v-model="columns[settings_option.link_index]"
+            is-link
+            readonly
+            label="连接"
+            placeholder="选择链接"
+            @click="showPicker = true"
+          />
+          <van-popup v-model="showPicker" round position="bottom">
+            <van-picker
+              title="连接"
+              show-toolbar
+              ref="van_picker"
+              :columns="columns"
+              @cancel="showPicker = false"
+              @confirm="onConfirm"
+              :default-index="settings_option.link_index"
+            />
+          </van-popup>
+          <van-field label="缓存">
+            <template #input>
+              <van-button
+                plain
+                type="primary"
+                @click="onClickRight"
+                size="small"
+                >清除</van-button
+              >
+            </template>
+          </van-field>
         </div>
       </van-action-sheet>
     </div>
@@ -180,6 +189,7 @@
                   v-if="skip_chapter !== 0"
                 />
                 <van-icon name="clock-o" @click="isChapter = true" v-else />
+                <van-icon name="replay" @click="fetchMusic" />
                 <van-icon name="setting-o" @click="isList = true" />
               </div>
               <div class="music-progress">
@@ -219,6 +229,8 @@ export default {
   name: "Home",
   data() {
     return {
+      showPicker: false,
+      columns: ["本地", "香港", "洛杉矶", "广州"],
       tab_active: "BookSearch",
       loading: false,
       finished: false,
@@ -399,6 +411,13 @@ export default {
     },
   },
   methods: {
+    onConfirm(value, index) {
+      this.settings_option.link_index = index;
+      this.$nextTick(() => {
+        this.$refs.van_picker.setIndexes([index]); // 注意这里是数组[索引值]
+      });
+      this.showPicker=false
+    },
     bookUpdateFavCurrent() {
       if (this.bookInfo.fav) {
         this.$store.dispatch("updateFav", this.bookInfo);
@@ -584,6 +603,7 @@ export default {
         bookId: this.bookInfo.bookId,
         chapterId: this.bookInfo.lastChapterId,
         uid: 0,
+        apiNum:parseInt(this.settings_option.link_index-1)
       };
       let url = "";
       if (this.request_time >= 2) {
@@ -594,8 +614,8 @@ export default {
         this.request_time = 0;
         return url;
       }
-      console.log("启动真是连接", this.settings_option.is_rellay_link);
-      if (this.settings_option.is_rellay_link) {
+      console.log("启动真是连接", this.columns[this.settings_option.link_index]);
+      if (this.settings_option.link_index===0) {
         const webviewRes = scanclick(
           this.bookInfo.bookId,
           this.bookInfo.lastChapterId
@@ -1008,8 +1028,9 @@ $foot-height: 50px;
   }
 }
 .settings {
-  height: 120px;
-  width: 100%;
+  height: 180px;
+  // width: 100%;
+  margin: 0 5%;
   display: flex;
   flex-flow: row wrap;
   align-items: center;

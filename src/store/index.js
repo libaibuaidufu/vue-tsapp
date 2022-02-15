@@ -16,7 +16,7 @@ const state = {   //要设置的全局访问的state对象
         currentBookListen: []
     },
     settings:getSettings()|| {
-        is_rellay_link: false,
+        link_index:0
     },
     bookChapterRunTime:getBookChapterRunTime()||[],
     isShow: false,
