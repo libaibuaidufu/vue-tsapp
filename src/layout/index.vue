@@ -323,7 +323,6 @@ export default {
       skip_to_last_time: false, // 跳转到上次听到的位置
       cutChapter: 0,
       cutChapterList: [],
-      request_time: 0,
       changeTime: false,
     };
   },
@@ -411,12 +410,25 @@ export default {
     },
   },
   methods: {
+    sleep(numberMillis) {
+      var now = new Date();
+      var exitTime = now.getTime() + numberMillis;
+      console.log(now.getTime());
+      console.log(exitTime);
+      while (true) {
+        now = new Date();
+        if (now.getTime() > exitTime) {
+          console.log("goo");
+          return;
+        }
+      }
+    },
     onConfirm(value, index) {
       this.settings_option.link_index = index;
       this.$nextTick(() => {
         this.$refs.van_picker.setIndexes([index]); // 注意这里是数组[索引值]
       });
-      this.showPicker=false
+      this.showPicker = false;
     },
     bookUpdateFavCurrent() {
       if (this.bookInfo.fav) {
@@ -424,7 +436,6 @@ export default {
       }
       this.$store.dispatch("updateCurrentBook", this.bookInfo);
     },
-    addChapterTimeList() {},
     async bookSearch(val) {
       this.keyword = val;
       const params = {
@@ -603,45 +614,34 @@ export default {
         bookId: this.bookInfo.bookId,
         chapterId: this.bookInfo.lastChapterId,
         uid: 0,
-        apiNum:parseInt(this.settings_option.link_index-1)
+        apiNum: parseInt(this.settings_option.link_index - 1),
       };
       let url = "";
-      if (this.request_time >= 2) {
-        this.$dialog.confirm({
-          title: "错误",
-          message: "加载出错,这是非本地请求出错三次了",
-        });
-        this.request_time = 0;
-        return url;
-      }
-      console.log("启动真是连接", this.columns[this.settings_option.link_index]);
-      if (this.settings_option.link_index===0) {
+      console.log(
+        "启动真是连接",
+        this.columns[this.settings_option.link_index]
+      );
+      if (this.settings_option.link_index === 0) {
         const webviewRes = scanclick(
           this.bookInfo.bookId,
           this.bookInfo.lastChapterId
         );
-        if (webviewRes.status === 0) {
+        if (webviewRes.status === 0||webviewRes.status === 999999) {
           this.$dialog.confirm({
             title: "错误",
             message: "真是连接加载出错:" + JSON.stringify(webviewRes),
           });
-        } else if (webviewRes.status === 999999) {
-          ++this.request_time;
-          setTimeout(this.fetchMusic, 3000);
         } else {
           url = abc(webviewRes.src);
         }
       } else {
         const res = await bookOne(params);
         if (res) {
-          if (res.data.status === 0) {
+          if (res.data.status === 0||res.data.status === 999999) {
             this.$dialog.confirm({
               title: "错误",
               message: "缓存加载出错:" + JSON.stringify(res.data),
             });
-          } else if (res.data.status === 999999) {
-            ++this.request_time;
-            setTimeout(this.fetchMusic, 3000);
           } else {
             url = abc(res.data.src);
           }

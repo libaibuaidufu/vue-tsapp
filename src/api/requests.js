@@ -1,9 +1,12 @@
 import axios from 'axios'
+import axiosRetry from 'axios-retry';
+import { Dialog } from 'vant'
 // create an axios instance
+
 const service = axios.create({
     // baseURL: settings.SERVER_URL, // url = base url + request url
     // withCredentials: true, // send cookies when cross-domain requests
-    timeout: 25000 // request timeout
+    timeout: 10000 // request timeout
 })
 
 // request interceptor
@@ -15,7 +18,6 @@ service.interceptors.request.use(
         return request
     },
     error => {
-        // // // console.log(error)
         return Promise.reject(error)
     }
 )
@@ -23,13 +25,17 @@ service.interceptors.request.use(
 //http-响应拦截
 service.interceptors.response.use(
     response => {
-        // // // console.log(response)
         return response
     },
     error => {
         return Promise.reject(error)
     }
 )
+axiosRetry(service, {
+    retries: 3, retryDelay: () => {
+        return 3 * 1000;
+    }
+});
 
 
 export default {
@@ -41,7 +47,9 @@ export default {
                 params: param,
             }).then(res => {
                 resolve(res)
-            }).catch((error)=>{resolve({data:{"status":999999,"message":"fuck"}})})
+            }).catch((error) => {
+                resolve({ data: { "status": 999999, "message": "fuck" } })
+            })
         })
     },
     post(url, param) {//post请求

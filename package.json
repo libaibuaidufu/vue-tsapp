@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "axios": "^0.25.0",
+    "axios-retry": "^3.2.4",
     "core-js": "^3.6.5",
     "vant": "^2.12.39",
     "vue": "^2.6.11",
