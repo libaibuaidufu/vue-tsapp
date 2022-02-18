@@ -146,6 +146,13 @@
               >
             </template>
           </van-field>
+          <van-field label="关于">
+            <template #input>
+              <van-button plain type="primary" @click="onAbout" size="small"
+                >关于软件</van-button
+              >
+            </template>
+          </van-field>
         </div>
       </van-action-sheet>
     </div>
@@ -221,7 +228,7 @@ import BookHeader from "../components/BookHeader.vue";
 import BookReHead from "../components/BookReHead.vue";
 import { bookSearch, bookOne } from "../api/book";
 import { abc, realFormatSecond } from "../utils/utils";
-import { scanclick, saveCurrentPath } from "../utils/androidFun";
+import { scanclick, saveCurrentPath,getSoft } from "../utils/androidFun";
 import { resetCache } from "../utils/localSave";
 
 export default {
@@ -410,6 +417,13 @@ export default {
     },
   },
   methods: {
+    onAbout() {
+      const res = getSoft()
+      this.$dialog.confirm({
+        title: "关于软件",
+        message: "这是假的"+res,
+      });
+    },
     sleep(numberMillis) {
       var now = new Date();
       var exitTime = now.getTime() + numberMillis;
@@ -626,7 +640,7 @@ export default {
           this.bookInfo.bookId,
           this.bookInfo.lastChapterId
         );
-        if (webviewRes.status === 0||webviewRes.status === 999999) {
+        if (webviewRes.status === 0 || webviewRes.status === 999999) {
           this.$dialog.confirm({
             title: "错误",
             message: "真是连接加载出错:" + JSON.stringify(webviewRes),
@@ -637,7 +651,7 @@ export default {
       } else {
         const res = await bookOne(params);
         if (res) {
-          if (res.data.status === 0||res.data.status === 999999) {
+          if (res.data.status === 0 || res.data.status === 999999) {
             this.$dialog.confirm({
               title: "错误",
               message: "缓存加载出错:" + JSON.stringify(res.data),

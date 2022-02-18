@@ -23,3 +23,22 @@ export function saveCurrentPath(name) {
         console.log("web运行")
     }
 }
+
+export function getSoft(){
+    try{
+        let res = window.androidinfo.getSoft();
+        return res
+    }catch(error){
+        console.log("web运行")
+        return JSON.stringify({"mes":"web运行"})
+    }
+}
+
+export function resetCacheAndroid(){
+    //清除cookie
+    try{
+        window.androidinfo.resetCache();
+    }catch(error){
+        console.log("web运行")
+    }
+}

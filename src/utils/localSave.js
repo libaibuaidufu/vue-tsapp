@@ -1,3 +1,4 @@
+import {resetCacheAndroid}  from "./androidFun"
 const currentBookKey = 'currentBookKey'
 const favListKey = "favListKey"
 const settingKey = "settingKey"
@@ -47,4 +48,5 @@ export function resetCache() {
     localStorage.removeItem(currentBookKey)
     localStorage.removeItem(favListKey)
     localStorage.removeItem(settingKey)
+    resetCacheAndroid()
 }
