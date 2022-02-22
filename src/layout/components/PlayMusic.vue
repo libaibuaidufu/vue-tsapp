@@ -241,6 +241,7 @@ export default {
       cutChapter: 0,
       cutChapterList: [],
       changeTime: false,
+      is_end:false
     };
   },
   computed: {
@@ -291,6 +292,12 @@ export default {
         this.refresh = true;
       });
     },
+    is_end(val){
+      if(val){
+        this.nextMusic()
+        this.is_end = false
+      }
+    }
   },
   methods: {
     bookUpdateFavCurrent() {
@@ -375,7 +382,8 @@ export default {
           --this.skip_chapter;
         }
       }
-      this.nextMusic();
+      this.is_end = true;
+      // this.nextMusic();
     },
     musicCanPlay() {
       console.log("我只是这样");
