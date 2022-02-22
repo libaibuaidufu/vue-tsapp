@@ -96,7 +96,7 @@ export default {
   data() {
     return {
       showPicker: false,
-      columns: ["本地", "香港", "洛杉矶", "广州"],
+      columns: ["本地"],
       tab_active: "BookSearch",
       loading: false,
       finished: false,
