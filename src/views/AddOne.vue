@@ -1,7 +1,7 @@
 <template>
   <div class="book-list">
     <div v-for="item in favList" :key="item.bookId" @click="pushToInfo(item)">
-      <div>
+      <div class="book-image">
         <img :src="item.bookIntro.bookImage" alt="..." v-real-img="" />
       </div>
       <div class="book-info">
@@ -42,16 +42,20 @@ export default {
 .book-list {
   padding: 0% 2.5%;
   div {
-    padding-bottom: 10px;
+    margin-bottom: 10px;
     height: 120px;
     display: flex;
     align-items: center;
-    img {
-      width: 30%;
-      margin-right: 20px;
-      width: 120px;
-      height: 120px;
+    .book-image {
+      margin-bottom: 0px;
+      img {
+        width: 30%;
+        margin-right: 20px;
+        width: 120px;
+        height: 120px;
+      }
     }
+
     .book-info {
       width: 62%;
       display: flex;

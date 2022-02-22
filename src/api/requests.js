@@ -31,11 +31,11 @@ service.interceptors.response.use(
         return Promise.reject(error)
     }
 )
-axiosRetry(service, {
-    retries: 3, retryDelay: () => {
-        return 3 * 1000;
-    }
-});
+// axiosRetry(service, {
+//     retries: 3, retryDelay: () => {
+//         return 3 * 1000;
+//     }
+// });
 
 
 export default {
@@ -48,7 +48,7 @@ export default {
             }).then(res => {
                 resolve(res)
             }).catch((error) => {
-                resolve({ data: { "status": 999999, "message": "fuck" } })
+                resolve({ data: { "status": 999999, "message": "fuck","url":url,"params":param } })
             })
         })
     },
