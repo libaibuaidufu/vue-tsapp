@@ -148,7 +148,7 @@
 
 
 <script>
-import {  realFormatSecond } from "../../utils/utils";
+import { realFormatSecond } from "../../utils/utils";
 import { scanclick } from "../../utils/androidFun";
 export default {
   name: "Music",
@@ -240,7 +240,7 @@ export default {
       cutChapter: 0,
       cutChapterList: [],
       changeTime: false,
-      is_end:false
+      is_end: false,
     };
   },
   computed: {
@@ -283,12 +283,12 @@ export default {
         this.refresh = true;
       });
     },
-    is_end(val){
-      if(val){
-        this.nextMusic()
-        this.is_end = false
+    is_end(val) {
+      if (val) {
+        this.nextMusic();
+        this.is_end = false;
       }
-    }
+    },
   },
   methods: {
     bookUpdateFavCurrent() {
@@ -374,7 +374,6 @@ export default {
         }
       }
       this.is_end = true;
-      // this.nextMusic();
     },
     musicCanPlay() {
       console.log("我只是这样");
@@ -460,13 +459,13 @@ export default {
         this.bookInfo.bookId,
         this.bookInfo.lastChapterId
       );
-      if (webviewRes.status !== 0 ) {
+      if (webviewRes.src) {
+        url = webviewRes.src;
+      } else {
         this.$dialog.confirm({
           title: "错误",
           message: "真是连接加载出错:" + JSON.stringify(webviewRes),
         });
-      } else {
-        url = webviewRes.src;
       }
       return url;
     },
