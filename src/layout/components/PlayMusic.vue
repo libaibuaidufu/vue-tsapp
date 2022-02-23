@@ -148,8 +148,7 @@
 
 
 <script>
-import {  bookOne } from "../../api/book";
-import { abc, realFormatSecond } from "../../utils/utils";
+import {  realFormatSecond } from "../../utils/utils";
 import { scanclick } from "../../utils/androidFun";
 export default {
   name: "Music",
@@ -259,14 +258,6 @@ export default {
       },
       set(val) {
         this.$store.dispatch("updateIsShow", val);
-      },
-    },
-    settings_option: {
-      get() {
-        return this.$store.getters.getSettings;
-      },
-      set(val) {
-        this.$store.dispatch("updateSettings", val);
       },
     },
     is_play: {
@@ -464,42 +455,18 @@ export default {
       }
     },
     async getUrl() {
-      let params = {
-        bookId: this.bookInfo.bookId,
-        chapterId: this.bookInfo.lastChapterId,
-        uid: 0,
-        apiNum: parseInt(this.settings_option.link_index - 1),
-      };
       let url = "";
-      console.log(
-        "启动真是连接",
-        this.settings_option.link_index
+      const webviewRes = scanclick(
+        this.bookInfo.bookId,
+        this.bookInfo.lastChapterId
       );
-      if (this.settings_option.link_index === 0) {
-        const webviewRes = scanclick(
-          this.bookInfo.bookId,
-          this.bookInfo.lastChapterId
-        );
-        if (webviewRes.status === 0 || webviewRes.status === 999999) {
-          this.$dialog.confirm({
-            title: "错误",
-            message: "真是连接加载出错:" + JSON.stringify(webviewRes),
-          });
-        } else {
-          url = abc(webviewRes.src);
-        }
+      if (webviewRes.status !== 0 ) {
+        this.$dialog.confirm({
+          title: "错误",
+          message: "真是连接加载出错:" + JSON.stringify(webviewRes),
+        });
       } else {
-        const res = await bookOne(params);
-        if (res) {
-          if (res.data.status === 0 || res.data.status === 999999) {
-            this.$dialog.confirm({
-              title: "错误",
-              message: "缓存加载出错:" + JSON.stringify(res.data),
-            });
-          } else {
-            url = abc(res.data.src);
-          }
-        }
+        url = webviewRes.src;
       }
       return url;
     },

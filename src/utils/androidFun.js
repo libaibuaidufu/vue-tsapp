@@ -7,7 +7,9 @@ export function scanclick(bookId, lastChapterId) {
         lastChapterId +
         ".html";
     try {
-        var str = window.androidinfo.showInfoFromJs(url);
+        const params = JSON.stringify({"bookId":bookId,"chapterId":lastChapterId})
+        // var str = window.androidinfo.showInfoFromJs(url);
+        var str = window.androidinfo.getUrlFromRe(params);
         const res = JSON.parse(str);
         return res;
     } catch (error) {
