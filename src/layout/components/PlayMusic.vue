@@ -241,6 +241,7 @@ export default {
       cutChapterList: [],
       changeTime: false,
       is_end: false,
+      is_over:false,
     };
   },
   computed: {
@@ -289,6 +290,12 @@ export default {
         this.is_end = false;
       }
     },
+    is_over(val){
+      if(val){
+        this.fetchMusic()
+        this.is_over =false
+      }
+    }
   },
   methods: {
     bookUpdateFavCurrent() {
@@ -462,10 +469,11 @@ export default {
       if (webviewRes.src) {
         url = webviewRes.src;
       } else {
-        this.$dialog.confirm({
-          title: "错误",
-          message: "真是连接加载出错:" + JSON.stringify(webviewRes),
-        });
+        this.$notify({ type: "primary", message: JSON.stringify(webviewRes) });
+        // this.$dialog.confirm({
+        //   title: "错误",
+        //   message: "真是连接加载出错:" + JSON.stringify(webviewRes),
+        // });
       }
       return url;
     },
@@ -502,6 +510,7 @@ export default {
         this.url = url;
       } else {
         this.$notify({ type: "primary", message: "请求过快，请稍后再试" });
+        this.is_over = true
         return;
       }
       this.auto_load = true;
