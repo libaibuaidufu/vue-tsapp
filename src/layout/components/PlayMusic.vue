@@ -148,6 +148,7 @@
 
 
 <script>
+import { bookOne } from "../../api/book";
 import { realFormatSecond } from "../../utils/utils";
 import { scanclick } from "../../utils/androidFun";
 export default {
@@ -269,6 +270,9 @@ export default {
       set(val) {
         this.$store.dispatch("updateIsPlay", val);
       },
+    },
+    settings_option() {
+      return this.$store.getters.getSettings;
     },
   },
   watch: {
@@ -462,10 +466,21 @@ export default {
     },
     async getUrl() {
       let url = "";
-      const webviewRes = scanclick(
-        this.bookInfo.bookId,
-        this.bookInfo.lastChapterId
-      );
+      let webviewRes;
+      console.log(this.settings_option.link_index )
+      if (this.settings_option.link_index === 0) {
+         webviewRes = scanclick(
+          this.bookInfo.bookId,
+          this.bookInfo.lastChapterId
+        );
+      } else {
+         const res = await bookOne({
+          bookId: this.bookInfo.bookId,
+          chapterId: this.bookInfo.lastChapterId,
+        });
+        webviewRes = res.data;
+      }
+      console.log(webviewRes)
       if (webviewRes.src) {
         url = webviewRes.src;
       } else {
