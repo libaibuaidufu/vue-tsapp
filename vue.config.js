@@ -37,18 +37,6 @@ module.exports = {
                     '^/apptingchina': ''
                 }
             },
-            '/pc':{
-                target: 'https://www.tingxiaoshuo.cc/pc',  //这里后台的地址模拟的;应该填写你们真实的后台接口
-                changOrigin: true,  //允许跨域
-                pathRewrite: {
-                    '^/pc': ''
-                },
-                headers: {
-                    'accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Referer':' https://www.tingxiaoshuo.cc',
-                    'user-agent':' Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36'
-                },
-            }
         }
     },
 }

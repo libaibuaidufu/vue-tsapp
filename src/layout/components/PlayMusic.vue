@@ -464,6 +464,16 @@ export default {
         this.run_time = realFormatSecond(this.$refs.video.currentTime);
       }
     },
+    getUid(){
+      const max_uid = 37600;
+      var uList = new Array();
+      for(var i=1;i<max_uid;i++){
+        uList.push(i);
+      }
+      let uid = uList[Math.floor(Math.random()*uList.length)];
+      console.log(uid)
+      return uid
+    },
     async getUrl() {
       let url = "";
       let webviewRes;
@@ -477,6 +487,7 @@ export default {
          const res = await bookOne({
           bookId: this.bookInfo.bookId,
           chapterId: this.bookInfo.lastChapterId,
+          // uid:this.getUid()
         });
         webviewRes = res.data;
       }
