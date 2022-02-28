@@ -97,8 +97,8 @@ export default {
     return {
       showPicker: false,
       // columns: ["android","本地",'服务器'],
-      columns: ["本地",'服务器'],
-      // columns: ["本地"],
+      // columns: ["本地",'服务器'],
+      columns: ["本地"],
       tab_active: "BookSearch",
       loading: false,
       finished: false,
