@@ -148,7 +148,7 @@
 
 
 <script>
-import { bookOne } from "../../api/book";
+import { bookOne,bookChapter } from "../../api/book";
 import { realFormatSecond } from "../../utils/utils";
 import { scanclick } from "../../utils/androidFun";
 export default {
@@ -478,16 +478,24 @@ export default {
       let url = "";
       let webviewRes;
       console.log(this.settings_option.link_index )
-      if (this.settings_option.link_index === 0) {
-         webviewRes = scanclick(
-          this.bookInfo.bookId,
-          this.bookInfo.lastChapterId
-        );
-      } else {
+      // 不适用android请求了 都放在h5中
+      // if (this.settings_option.link_index === 0) {
+      //    webviewRes = scanclick(
+      //     this.bookInfo.bookId,
+      //     this.bookInfo.lastChapterId
+      //   );
+      // }else 
+      if(this.settings_option.link_index === 0){
          const res = await bookOne({
           bookId: this.bookInfo.bookId,
           chapterId: this.bookInfo.lastChapterId,
-          // uid:this.getUid()
+          uid:this.getUid()
+        });
+        webviewRes = res.data;
+      } else {
+         const res = await bookChapter({
+          bookId: this.bookInfo.bookId,
+          chapterId: this.bookInfo.lastChapterId,
         });
         webviewRes = res.data;
       }
@@ -496,10 +504,6 @@ export default {
         url = webviewRes.src;
       } else {
         this.$notify({ type: "primary", message: JSON.stringify(webviewRes) });
-        // this.$dialog.confirm({
-        //   title: "错误",
-        //   message: "真是连接加载出错:" + JSON.stringify(webviewRes),
-        // });
       }
       return url;
     },

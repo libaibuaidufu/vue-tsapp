@@ -80,7 +80,7 @@
 <script>
 import BookFooter from "../components/BookFooter.vue";
 import BookReHead from "../components/BookReHead.vue";
-import { bookInfo, bookListen, bookRListen } from "../api/book";
+import { bookInfo, bookListen } from "../api/book";
 import { getFavBookByBookId, getSearchBookByBookId } from "../utils/utils";
 
 export default {
@@ -184,7 +184,7 @@ export default {
       };
       let res;
       if (really) {
-        res = await bookRListen(param);
+        res = await bookListen(param);
       } else {
         res = await bookListen(param);
       }
