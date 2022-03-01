@@ -323,9 +323,9 @@ export default {
       const bookInfo = this.$store.getters.getCurrentBook;
       if (isSame && this.bookInfo.bookId) {
         this.show = true;
-        if (this.is_can_play && this.$refs.video.paused) {
-          this.playMusic();
-        }
+        // if (this.is_can_play && this.$refs.video.paused) {
+        //   this.playMusic();
+        // }
       } else {
         if (bookInfo.bookId) {
           if (
