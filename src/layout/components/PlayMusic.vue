@@ -243,6 +243,8 @@ export default {
       changeTime: false,
       is_end: false,
       is_over: false,
+      requests_time:0,
+      default_request_time:5
     };
   },
   computed: {
@@ -538,9 +540,15 @@ export default {
       const url = await this.getUrl();
       if (url) {
         this.url = url;
+        this.requests_time = 0
       } else {
         this.$notify({ type: "primary", message: "请求过快，请稍后再试" });
-        this.is_over = true;
+        if(this.requests_time<this.default_request_time){
+          ++this.requests_time
+          this.is_over = true;
+        }else{
+          this.requests_time = 0
+        }
         return;
       }
       this.auto_load = true;
