@@ -244,7 +244,7 @@ export default {
       is_end: false,
       is_over: false,
       requests_time:0,
-      default_request_time:5
+      default_request_time:20
     };
   },
   computed: {
@@ -542,7 +542,7 @@ export default {
         this.url = url;
         this.requests_time = 0
       } else {
-        this.$notify({ type: "primary", message: "请求过快，请稍后再试" });
+        this.$notify({ type: "primary", message: "请求过快，请稍后再试"+this.requests_time.toString() });
         if(this.requests_time<this.default_request_time){
           ++this.requests_time
           this.is_over = true;
