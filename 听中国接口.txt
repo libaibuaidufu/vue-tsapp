@@ -1,0 +1,9 @@
+APP首页 GET http://app.tings8.com/listen/apptingchina/appHome HTTP/1.1
+APP热搜 GET http://app.tings8.com/listen/apptingchina/hotSearchList HTTP/1.1
+APP搜索 GET http://app.tings8.com/listen/apptingchina/appSearch?search=%E4%B8%80%E4%B8%96%E4%B9%8B%E5%B0%8A HTTP/1.1
+APP详情 GET http://app.tings8.com/listen/apptingchina/book?bookId=12907 HTTP/1.1
+APP书列 GET http://app.tings8.com/listen/apptingchina/chapter?size=30&page=1&sort=asc&bookId=12907 HTTP/1.1
+APP听书 GET http://app.tings8.com/listen/apptingchina/AppGetChapterUrl2022?uid=&chapterId=3671073&bookId=12323 HTTP/1.1
+
+书列 http://app.tings8.com/listen/api/chapter?size=30&sort=asc&bookId=12907 
+详情 http://app.tings8.com/listen/api/book?bookId=12907

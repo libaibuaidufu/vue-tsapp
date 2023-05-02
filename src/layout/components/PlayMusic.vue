@@ -244,7 +244,7 @@ export default {
       is_end: false,
       is_over: false,
       requests_time:0,
-      default_request_time:20
+      default_request_time:2
     };
   },
   computed: {
@@ -493,12 +493,24 @@ export default {
           chapterId: this.bookInfo.lastChapterId,
           uid:this.getUid()
         });
+        if (res.data.status!==0){
+          this.$dialog.confirm({
+            title: "错误",
+            message: "真是连接加载出错:" + JSON.stringify(webviewRes),
+          });
+        }
         webviewRes = res.data;
       } else {
          const res = await bookChapter({
           bookId: this.bookInfo.bookId,
           chapterId: this.bookInfo.lastChapterId,
         });
+        if (res.data.status!==0){
+          this.$dialog.confirm({
+            title: "错误",
+            message: "真是连接加载出错:" + JSON.stringify(webviewRes),
+          });
+        }
         webviewRes = res.data;
       }
       console.log(webviewRes)

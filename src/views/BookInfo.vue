@@ -80,7 +80,7 @@
 <script>
 import BookFooter from "../components/BookFooter.vue";
 import BookReHead from "../components/BookReHead.vue";
-import { bookInfo, bookListen } from "../api/book";
+import { bookInfo, bookListen,bookRListen } from "../api/book";
 import { getFavBookByBookId, getSearchBookByBookId } from "../utils/utils";
 
 export default {
@@ -184,9 +184,15 @@ export default {
       };
       let res;
       if (really) {
-        res = await bookListen(param);
+        res = await bookRListen(param);
       } else {
         res = await bookListen(param);
+      }
+      if (res.data.status !== 1) {
+        this.$dialog.confirm({
+          title: "错误",
+          message: "缓存加载出错:" + JSON.stringify(res.data),
+        });
       }
       this.bookIntroList = res.data.data.list;
       this.loading = true;
