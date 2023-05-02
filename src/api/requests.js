@@ -42,7 +42,7 @@ export default {
                 params: param,
             }).then(res => {
                 resolve(res)
-            }).catch((error)=>{resolve({data:{"status":999999,"message":"fuck"}})})
+            }).catch((error)=>{resolve({data:{"status":999999,"message":"垃圾服务器卡了"}})})
         })
     },
     post(url, param) {//post请求

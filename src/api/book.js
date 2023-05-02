@@ -6,7 +6,7 @@ export const bookInfo=(params)=>axios.get('/api/book',params)
 export const bookListen=(params)=>axios.get('/api/chapter',params)
 export const bookSearch=(params)=>axios.get("/apptingchina/appSearch",params)
 export const bookRListen=(params)=>axios.get('/api/chapter',params)
-export const bookOpen=(params)=>axios.get('/apptingchina/AppGetChapterUrl',params)
+export const bookOpen=(params)=>axios.get('/apptingchina/AppGetChapterUrl2022',params)
 
 
 // app打包使用

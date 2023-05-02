@@ -1,7 +1,7 @@
 <template>
   <div class="book-list">
     <div v-for="item in searchBook" :key="item.id" @click="pushToInfo(item)">
-      <img :src="item.bookImage" alt="..." v-real-img="" />
+      <img :src="item.bookImage" alt="..." v-real-img=""  />
       <p class="title">{{ item.bookTitle }}</p>
     </div>
   </div>

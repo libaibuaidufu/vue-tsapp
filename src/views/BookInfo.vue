@@ -34,7 +34,7 @@
         class="book-title"
         @click="
           pushToMusic({
-            chapterTitle: bookInfo.lastChapterTitle,
+            title: bookInfo.lastChapterTitle,
             chapterId: bookInfo.lastChapterId,
           })
         "
@@ -56,7 +56,7 @@
           <van-cell
             v-for="item in cutChapterList"
             :key="item.chapterId"
-            :title="item.chapterTitle"
+            :title="item.title"
             @click="pushToMusic(item)"
           />
         </van-list>
@@ -68,7 +68,7 @@
           <van-cell
             v-for="item in bookIntroList"
             :key="item.chapterId"
-            :title="item.chapterTitle"
+            :title="item.title"
             @click="pushToMusic(item)"
           />
         </van-list> -->
@@ -89,7 +89,7 @@ export default {
       isLoading: false,
       uid: 0,
       bookIntroList: [],
-      size: 20,
+      size: 50,
       loading: false,
       finished: true,
       fav: false,
@@ -111,7 +111,7 @@ export default {
   },
   methods: {
     onRefresh() {
-      this.fetchBookListen(true);
+      this.fetchBookListenTwo(true);
       this.isLoading = false;
       this.$notify({ type: "success", message: "刷新成功" });
     },
@@ -133,14 +133,14 @@ export default {
           );
           this.bookInfo.bookIntro = bookIntro;
           this.bookInfo.bookId = bookId;
-          this.fetchBookListen();
+          this.fetchBookListenTwo();
         } else {
           this.bookInfo = Object.assign({}, favBook);
           this.bookIntroList = this.bookInfo.currentBookListen;
           this.loading = true;
         }
       }
-      this.cutChapter = parseInt(Math.ceil(this.bookIntroList.length / 50));
+      this.cutChapter = parseInt(Math.ceil(this.bookInfo.bookIntro.count / 50));
       this.cutChapterList = this.bookIntroList.slice(0, 50);
       this.fav = this.bookInfo.fav;
     },
@@ -154,19 +154,19 @@ export default {
         currentBook.bookId &&
         currentBook.bookId === this.bookInfo.bookId
       ) {
-        if(currentBook.lastChapterId === item.chapterId){
-          isSame = true
+        if (currentBook.lastChapterId === item.chapterId) {
+          isSame = true;
         }
         isBook = true;
         this.bookInfo = currentBook;
       }
-      this.bookInfo.lastChapterTitle = item.chapterTitle;
+      this.bookInfo.lastChapterTitle = item.title;
       this.bookInfo.lastChapterId = item.chapterId;
       this.$store.dispatch("updateCurrentBook", this.bookInfo);
       if (this.bookInfo.fav) {
         this.$store.dispatch("updateFav", this.bookInfo);
       }
-      this.$emit("showModule", isBook,isSame);
+      this.$emit("showModule", isBook, isSame);
     },
     async fetchBookInfo() {
       const res = await bookInfo({
@@ -174,6 +174,63 @@ export default {
         bookId: this.bookInfo.bookId,
       });
       return res.data.data.bookData;
+    },
+    async fetchBookListenTwo(really = false) {
+      const param = {
+        bookId: this.bookInfo.bookId,
+        uid: this.uid,
+        sort: "asc",
+        size: this.size,
+      };
+      let res;
+      if (really) {
+        res = await bookRListen(param);
+      } else {
+        res = await bookListen(param);
+      }
+      if (res.data.status !== 0) {
+        this.$dialog.confirm({
+          title: "错误",
+          message: "缓存加载出错:" + JSON.stringify(res.data),
+        });
+      }
+      this.bookIntroList = res.data.data.list;
+      this.loading = true;
+      this.bookInfo.bookIntro.count = res.data.data.count;
+      this.bookInfo.currentBookListen = this.bookIntroList;
+      this.cutChapter = parseInt(Math.ceil(res.data.data.count / 50));
+      this.cutChapterList = this.bookIntroList;
+
+      if (this.bookInfo.fav) {
+        this.$store.dispatch("updateFav", this.bookInfo);
+      }
+    },
+    async fetchBookListenThree(page = 1) {
+      const param = {
+        bookId: this.bookInfo.bookId,
+        uid: this.uid,
+        sort: "asc",
+        size: this.size,
+        page: page,
+      };
+      let res;
+      res = await bookListen(param);
+      if (res.data.status !== 0) {
+        this.$dialog.confirm({
+          title: "错误",
+          message: "缓存加载出错:" + JSON.stringify(res.data),
+        });
+      }
+      this.bookIntroList = res.data.data.list;
+      this.loading = true;
+      this.bookInfo.bookIntro.count = res.data.data.count;
+      this.bookInfo.currentBookListen = this.bookIntroList;
+      this.cutChapter = parseInt(Math.ceil(res.data.data.count / 50));
+      this.cutChapterList = this.bookIntroList;
+
+      if (this.bookInfo.fav) {
+        this.$store.dispatch("updateFav", this.bookInfo);
+      }
     },
     async fetchBookListen(really = false) {
       const param = {
@@ -200,19 +257,22 @@ export default {
       }
     },
     showCutChapter(val) {
-      const start_chapter = val * 50 - 50;
-      const end_chapter = val * 50;
-      this.cutChapterList = this.bookIntroList.slice(
-        start_chapter,
-        end_chapter
-      );
+      this.fetchBookListenThree(val);
+      // const start_chapter = val * 50 - 50;
+      // const end_chapter = val * 50;
+      // this.cutChapterList = this.bookIntroList.slice(
+      //   start_chapter,
+      //   end_chapter
+      // );
     },
     isFav() {
       this.fav = !this.fav;
       this.bookInfo.fav = this.fav;
       if (this.bookInfo.fav) {
-        this.bookInfo.skip_start_time = this.bookInfo.skip_start_time || this.$options.data().skip_start_time;
-        this.bookInfo.skip_end_time = this.bookInfo.skip_end_time || this.$options.data().skip_end_time;
+        this.bookInfo.skip_start_time =
+          this.bookInfo.skip_start_time || this.$options.data().skip_start_time;
+        this.bookInfo.skip_end_time =
+          this.bookInfo.skip_end_time || this.$options.data().skip_end_time;
         this.$store.dispatch("addFav", this.bookInfo);
       } else {
         this.$store.dispatch("delFav", this.bookInfo.bookId);
@@ -290,5 +350,4 @@ export default {
 </style>
 
 <style lang="scss" scoped>
-
 </style>

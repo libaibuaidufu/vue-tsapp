@@ -104,7 +104,7 @@
           <van-cell
             v-for="item in cutChapterList"
             :key="item.chapterId"
-            :title="item.chapterTitle"
+            :title="item.title"
             @click="playClickChapter(item)"
           />
         </van-list>
@@ -180,6 +180,7 @@
                   v-if="skip_chapter !== 0"
                 />
                 <van-icon name="clock-o" @click="isChapter = true" v-else />
+                <van-icon name="replay" @click="getUrl()"/>
                 <van-icon name="setting-o" @click="isList = true" />
               </div>
               <div class="music-progress">
@@ -209,7 +210,7 @@
 import BookFooter from "../components/BookFooter.vue";
 import BookHeader from "../components/BookHeader.vue";
 import BookReHead from "../components/BookReHead.vue";
-import { bookSearch, bookOne } from "../api/book";
+import { bookSearch, bookOpen } from "../api/book";
 import { abc, realFormatSecond } from "../utils/utils";
 import { scanclick, saveCurrentPath } from "../utils/androidFun";
 import { resetCache } from "../utils/localSave";
@@ -467,7 +468,7 @@ export default {
               (item) => item.chapterId === this.bookInfo.lastChapterId
             );
             this.cutChapter = parseInt(
-              Math.ceil(this.bookIntroList.length / 50)
+              Math.ceil(this.bookInfo.bookIntro.count / 50)
             );
             const currentCutChapter = parseInt(
               Math.ceil(this.bookInfo.chapterIndex / 50)
@@ -612,16 +613,24 @@ export default {
           url = abc(webviewRes.src);
         }
       } else {
-        const res = await bookOne(params);
+        const res = await bookOpen(params);
         if (res) {
-          if (res.data.status === 0 || res.data.status === 999999) {
+          if(res.data.status === 0){
+            url = res.data.src
+          }else{
             this.$dialog.confirm({
               title: "错误",
               message: "缓存加载出错:" + JSON.stringify(res.data),
             });
-          } else {
-            url = abc(res.data.src);
           }
+          // if (res.data.status === 0 || res.data.status === 999999) {
+          //   this.$dialog.confirm({
+          //     title: "错误",
+          //     message: "缓存加载出错:" + JSON.stringify(res.data),
+          //   });
+          // } else {
+          //   url = abc(res.data.src);
+          // }
         }
       }
       return url;
@@ -694,9 +703,9 @@ export default {
       this.is_can_play = false;
       let nextChapter = {};
       ++this.bookInfo.chapterIndex;
-      if (this.bookInfo.chapterIndex < this.bookIntroList.length) {
+      if (this.bookInfo.chapterIndex < this.bookInfo.bookIntro.count) {
         nextChapter = this.bookIntroList[this.bookInfo.chapterIndex];
-        this.bookInfo.lastChapterTitle = nextChapter.chapterTitle;
+        this.bookInfo.lastChapterTitle = nextChapter.title;
         this.bookInfo.lastChapterId = nextChapter.chapterId;
         this.bookUpdateFavCurrent();
         this.fetchMusic();
@@ -712,10 +721,10 @@ export default {
       --this.bookInfo.chapterIndex;
       if (
         0 <= this.bookInfo.chapterIndex &&
-        this.bookInfo.chapterIndex < this.bookIntroList.length
+        this.bookInfo.chapterIndex < this.bookInfo.bookIntro.count
       ) {
         Chapter = this.bookIntroList[this.bookInfo.chapterIndex];
-        this.bookInfo.lastChapterTitle = Chapter.chapterTitle;
+        this.bookInfo.lastChapterTitle = Chapter.title;
         this.bookInfo.lastChapterId = Chapter.chapterId;
         this.bookUpdateFavCurrent();
         this.fetchMusic();
@@ -727,7 +736,7 @@ export default {
     // 切歌
     playClickChapter(item) {
       this.is_can_play = false;
-      this.bookInfo.lastChapterTitle = item.chapterTitle;
+      this.bookInfo.lastChapterTitle = item.title;
       this.bookInfo.lastChapterId = item.chapterId;
       this.bookInfo.chapterIndex = this.bookIntroList.findIndex(
         (item) => item.chapterId === this.bookInfo.lastChapterId
@@ -736,14 +745,28 @@ export default {
       this.isList = false;
       this.fetchMusic();
     },
+    async fetchBookListenThree(page=1){
+      const param = {
+        bookId: this.bookInfo.bookId,
+        uid: 0,
+        sort: "asc",
+        size: 50,
+        page: page
+      };
+      let res;
+      res = await bookListen(param);
+      this.bookIntroList = res.data.data.list;
+      this.cutChapterList = this.bookIntroList;
+    },
     // 展示50集数
     showCutChapter(val) {
-      const start_chapter = val * 50 - 50;
-      const end_chapter = val * 50;
-      this.cutChapterList = this.bookIntroList.slice(
-        start_chapter,
-        end_chapter
-      );
+      this.fetchBookListenThree(val)
+      // const start_chapter = val * 50 - 50;
+      // const end_chapter = val * 50;
+      // this.cutChapterList = this.bookIntroList.slice(
+      //   start_chapter,
+      //   end_chapter
+      // );
     },
     // 保持片头结尾
     saveSkipTime() {

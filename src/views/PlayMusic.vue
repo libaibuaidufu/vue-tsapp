@@ -84,7 +84,7 @@
                 <van-cell
                   v-for="item in cutChapterList"
                   :key="item.chapterId"
-                  :title="item.chapterTitle"
+                  :title="item.title"
                   @click="playClickChapter(item)"
                 />
               </van-list>
@@ -112,7 +112,7 @@
 </template>
 
 <script>
-import { bookOne } from "@/api/book";
+import { bookOpen } from "@/api/book";
 import { abc, realFormatSecond } from "../utils/utils";
 
 export default {
@@ -238,7 +238,7 @@ export default {
       this.bookIntroList = this.bookInfo.currentBookListen;
       this.skip_start_time = this.bookInfo.skip_start_time;
       this.skip_end_time = this.bookInfo.skip_end_time;
-      this.cutChapter = parseInt(Math.ceil(this.bookIntroList.length / 50));
+      this.cutChapter = parseInt(Math.ceil(this.bookInfo.bookIntro.count / 50));
       this.cutChapterList = this.bookIntroList.slice(0, 50);
     },
     musicEnd() {
@@ -290,29 +290,6 @@ export default {
     },
     async fetchMusic() {
       return;
-      let params = {
-        bookId: this.bookId,
-        chapterId: this.bookInfo.lastChapterId,
-        uid: 0,
-      };
-      const resp = await bookOne(params);
-      const res = resp.data;
-      if (res.status === 0) {
-        const webviewRes = this.scanclick();
-        if (webviewRes.status === 0) {
-          this.$notify({ type: "primary", message: "请求过快，请稍后再试" });
-          return;
-        } else {
-          this.url = abc(webviewRes.src);
-        }
-      } else {
-        this.url = abc(res.src);
-      }
-      this.auto_load = true;
-      if (this.bookInfo.fav) {
-        this.$store.dispatch("updateFav", this.bookInfo);
-        // removeFavSetFavList(this.bookId, this.bookInfo);
-      }
     },
     scanclick() {
       const url =
@@ -362,7 +339,7 @@ export default {
         }
       });
       if (next_book) {
-        this.bookInfo.lastChapterTitle = nextChapter.chapterTitle;
+        this.bookInfo.lastChapterTitle = nextChapter.title;
         this.bookInfo.lastChapterId = nextChapter.chapterId;
         this.$store.dispatch("updateFav", this.bookInfo);
         this.fetchMusic();
@@ -389,7 +366,7 @@ export default {
         }
       });
       if (last_book) {
-        this.bookInfo.lastChapterTitle = lastChapter.chapterTitle;
+        this.bookInfo.lastChapterTitle = lastChapter.title;
         this.bookInfo.lastChapterId = lastChapter.chapterId;
         this.$store.dispatch("updateFav", this.bookInfo);
         this.fetchMusic();
@@ -425,7 +402,7 @@ export default {
     },
     playClickChapter(item) {
       // // console.log(item);
-      this.bookInfo.lastChapterTitle = item.chapterTitle;
+      this.bookInfo.lastChapterTitle = item.title;
       this.bookInfo.lastChapterId = item.chapterId;
       this.$store.dispatch("updateFav", this.bookInfo);
       this.isList = false;
