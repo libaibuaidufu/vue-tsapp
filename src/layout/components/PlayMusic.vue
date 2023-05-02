@@ -121,6 +121,7 @@
                 />
                 <van-icon name="clock-o" @click="isChapter = true" v-else />
                 <van-icon name="replay" @click="fetchMusic" />
+                <van-icon name="service-o" @click="showMusicSrc" />
                 <van-icon name="setting-o" @click="isList = true" />
               </div>
               <div class="music-progress">
@@ -692,6 +693,12 @@ export default {
     onClickLeft() {
       this.show = false;
     },
+    showMusicSrc(){
+      this.$dialog.confirm({
+            title: this.bookInfo.lastChapterTitle,
+            message: this.url,
+          });
+    }
   },
 };
 </script>
