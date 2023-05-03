@@ -141,6 +141,11 @@
               </div>
             </div>
           </div>
+          <van-overlay :show="isLoadOver" >
+            <div class="wrapper" @click.stop>
+              <van-loading size="24px">加载中...</van-loading>
+            </div>
+          </van-overlay>
         </div>
       </div>
     </van-overlay>
@@ -149,13 +154,14 @@
 
 
 <script>
-import { bookOne,bookChapter } from "../../api/book";
+import { bookOne, bookChapter } from "../../api/book";
 import { realFormatSecond } from "../../utils/utils";
 import { scanclick } from "../../utils/androidFun";
 export default {
   name: "Music",
   data() {
     return {
+      isLoadOver: false,
       rate_play: 1,
       rate_option: [
         {
@@ -244,8 +250,8 @@ export default {
       changeTime: false,
       is_end: false,
       is_over: false,
-      requests_time:0,
-      default_request_time:2
+      requests_time: 0,
+      default_request_time: 0,
     };
   },
   computed: {
@@ -467,54 +473,58 @@ export default {
         this.run_time = realFormatSecond(this.$refs.video.currentTime);
       }
     },
-    getUid(){
+    getUid() {
       const max_uid = 37600;
       var uList = new Array();
-      for(var i=1;i<max_uid;i++){
+      for (var i = 1; i < max_uid; i++) {
         uList.push(i);
       }
-      let uid = uList[Math.floor(Math.random()*uList.length)];
-      console.log(uid)
-      return uid
+      let uid = uList[Math.floor(Math.random() * uList.length)];
+      console.log(uid);
+      return uid;
     },
     async getUrl() {
       let url = "";
       let webviewRes;
-      console.log(this.settings_option.link_index )
+      console.log(this.settings_option.link_index);
       // 不适用android请求了 都放在h5中
       // if (this.settings_option.link_index === 0) {
       //    webviewRes = scanclick(
       //     this.bookInfo.bookId,
       //     this.bookInfo.lastChapterId
       //   );
-      // }else 
-      if(this.settings_option.link_index === 0){
-         const res = await bookOne({
+      // }else
+      this.isLoadOver = true;
+      if (this.settings_option.link_index === 0) {
+        const res = await bookOne({
           bookId: this.bookInfo.bookId,
           chapterId: this.bookInfo.lastChapterId,
-          uid:this.getUid()
+          // uid:this.getUid(),
+          uid: 0,
         });
-        if (res.data.status!==0){
+        this.isLoadOver = false;
+        if (res.data.status === 999999) {
           this.$dialog.confirm({
-            title: "错误",
-            message: "真是连接加载出错:" + JSON.stringify(webviewRes),
+            title: "请求出错了",
+            message: "垃圾服务器卡了,请刷新重试！",
           });
         }
         webviewRes = res.data;
       } else {
-         const res = await bookChapter({
+        const res = await bookChapter({
           bookId: this.bookInfo.bookId,
           chapterId: this.bookInfo.lastChapterId,
         });
-        if (res.data.status!==0){
+        
+        if (res.data.status === 999999) {
           this.$dialog.confirm({
-            title: "错误",
-            message: "真是连接加载出错:" + JSON.stringify(webviewRes),
+            title: "请求出错了",
+            message: "垃圾服务器卡了,请刷新重试！",
           });
         }
         webviewRes = res.data;
       }
-      console.log(webviewRes)
+      console.log(webviewRes);
       if (webviewRes.src) {
         url = webviewRes.src;
       } else {
@@ -553,14 +563,17 @@ export default {
       const url = await this.getUrl();
       if (url) {
         this.url = url;
-        this.requests_time = 0
+        this.requests_time = 0;
       } else {
-        this.$notify({ type: "primary", message: "请求过快，请稍后再试"+this.requests_time.toString() });
-        if(this.requests_time<this.default_request_time){
-          ++this.requests_time
+        this.$notify({
+          type: "primary",
+          message: "请求过快，请稍后再试" + this.requests_time.toString(),
+        });
+        if (this.requests_time < this.default_request_time) {
+          ++this.requests_time;
           this.is_over = true;
-        }else{
-          this.requests_time = 0
+        } else {
+          this.requests_time = 0;
         }
         return;
       }
@@ -693,12 +706,12 @@ export default {
     onClickLeft() {
       this.show = false;
     },
-    showMusicSrc(){
+    showMusicSrc() {
       this.$dialog.confirm({
-            title: this.bookInfo.lastChapterTitle,
-            message: this.url,
-          });
-    }
+        title: this.bookInfo.lastChapterTitle,
+        message: this.url,
+      });
+    },
   },
 };
 </script>

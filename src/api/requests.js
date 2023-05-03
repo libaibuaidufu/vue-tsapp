@@ -6,7 +6,7 @@ import { Dialog } from 'vant'
 const service = axios.create({
     // baseURL: settings.SERVER_URL, // url = base url + request url
     // withCredentials: true, // send cookies when cross-domain requests
-    timeout: 12000 // request timeout
+    timeout: 0 // request timeout
 })
 
 // request interceptor

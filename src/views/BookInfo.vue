@@ -1,7 +1,7 @@
 <template>
   <!-- <book-re-head :title="title" /> -->
   <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
-    <div class="book-intro">
+    <div class="book-intro" >
       <div class="book-one">
         <div class="book-img">
           <img :src="bookInfo.bookIntro.bookImage" alt="..." v-real-img="" />
@@ -43,7 +43,10 @@
         上次听到：
         {{ bookInfo.lastChapterTitle }}
       </p>
-      <div class="book-listen-list">
+      <div v-if="isLoadOver">
+        <van-loading size="24px">加载中...</van-loading>
+    </div>
+      <div class="book-listen-list" v-else>
         <van-grid clickable :gutter="5">
           <van-grid-item
             :text="(item - 1) * 50 + 1 + '-' + item * 50"
@@ -90,6 +93,7 @@ export default {
       uid: 0,
       bookIntroList: [],
       size: 20,
+      isLoadOver:false,
       loading: false,
       finished: true,
       fav: false,
@@ -169,10 +173,12 @@ export default {
       this.$emit("showModule", isBook,isSame);
     },
     async fetchBookInfo() {
+      this.isLoadOver = true
       const res = await bookInfo({
         uid: this.uid,
         bookId: this.bookInfo.bookId,
       });
+      this.isLoadOver = false
       return res.data.data.bookData;
     },
     async fetchBookListen(really = false) {
@@ -183,15 +189,17 @@ export default {
         size: this.size,
       };
       let res;
+      this.isLoadOver = true
       if (really) {
         res = await bookRListen(param);
       } else {
         res = await bookListen(param);
       }
-      if (res.data.status !== 1) {
+      this.isLoadOver = false
+      if (res.data.status ===999999) {
         this.$dialog.confirm({
-          title: "错误",
-          message: "缓存加载出错:" + JSON.stringify(res.data),
+          title: "请求出错了",
+            message: "垃圾服务器卡了,请刷新重试！",
         });
       }
       this.bookIntroList = res.data.data.list;

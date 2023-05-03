@@ -18,6 +18,9 @@
         playContent: this.$route.name === 'PlayMusic',
       }"
     >
+    <div v-if="isLoadOver">
+      <van-loading size="24px">加载中...</van-loading>
+    </div>
       <router-view
         :key="key"
         :searchBook="searchBook"
@@ -98,9 +101,10 @@ export default {
       showPicker: false,
       // columns: ["android","本地",'服务器'],
       // columns: ["本地",'服务器'],
-      columns: ["本地"],
+      columns: ["服务器","本地"],
       tab_active: "BookSearch",
       loading: false,
+      isLoadOver:false,
       finished: false,
       searchBook: [],
       keyword: "",
@@ -181,7 +185,16 @@ export default {
       const params = {
         search: this.keyword,
       };
+      this.isLoadOver = true;
       const res = await bookSearch(params);
+      this.isLoadOver = false;
+      if (res.data.status===999999){
+        this.$dialog.confirm({
+            title: "请求出错了",
+            message: "垃圾服务器卡了,请刷新重试！",
+          });
+      }      
+    
       this.$store.dispatch("setSearchList", res.data.data.bookData);
       this.searchBook = res.data.data.bookData;
     },
