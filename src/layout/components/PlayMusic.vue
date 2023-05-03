@@ -515,7 +515,7 @@ export default {
           bookId: this.bookInfo.bookId,
           chapterId: this.bookInfo.lastChapterId,
         });
-        
+        this.isLoadOver = false;
         if (res.data.status === 999999) {
           this.$dialog.confirm({
             title: "请求出错了",
